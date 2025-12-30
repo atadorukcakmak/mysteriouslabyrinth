@@ -587,8 +587,6 @@ MonoBehaviour:
   sinkDepth: 3
   environmentZoneId: -1
   transformRadius: 10
-  approachDialogue: Pharaoh
-  successDialogue: Pharaoh Sinks...
 --- !u!65 &307025258
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1181,7 +1179,7 @@ Transform:
   m_GameObject: {fileID: 460146541}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -13.89}
+  m_LocalPosition: {x: 2.12, y: 1, z: -13.89}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1510,7 +1508,7 @@ Transform:
   m_GameObject: {fileID: 478724190}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.01, y: 0, z: 17}
+  m_LocalPosition: {x: 1.01, y: 0, z: -19.67}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1536,7 +1534,7 @@ MonoBehaviour:
   requireInteraction: 1
   bookReward: {fileID: 0}
   bookOrderOverride: -1
-  customQuestion: {fileID: 11400000, guid: b187b5add5aec904ebd46824841fd8ed, type: 2}
+  customQuestion: {fileID: 11400000, guid: c53e002397443e140b9919ad23cfc3f9, type: 2}
   chestClosed: {fileID: 1913494400}
   chestOpen: {fileID: 1749535895}
   bookVisual: {fileID: 1103002278}
@@ -1544,9 +1542,6 @@ MonoBehaviour:
   openDuration: 1
   bookRiseDuration: 1.5
   bookRiseHeight: 1.5
-  approachDialogue: A mysterious chest! Perhaps it contains something valuable...
-  lockedDialogue: The chest is locked. Answer the question to unlock it.
-  unlockDialogue: The chest opens, revealing a sacred book!
   alreadyOpenDialogue: You've already collected the book from this chest.
   unlockParticles: {fileID: 0}
   unlockSound: {fileID: 0}
@@ -1570,8 +1565,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 2.535777, y: 2.6285672, z: 3.7821693}
+  m_Center: {x: 0.76788855, y: 0.81428385, z: -0.22326851}
 --- !u!1 &525423542
 GameObject:
   m_ObjectHideFlags: 0
@@ -1814,7 +1809,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 30}
+  m_AnchoredPosition: {x: 0, y: 87}
   m_SizeDelta: {x: 600, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &610879135
@@ -2174,7 +2169,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 30}
+  m_AnchoredPosition: {x: 0, y: 20}
   m_SizeDelta: {x: 600, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &863807864
@@ -2276,7 +2271,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &919413012
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2296,8 +2291,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 750}
-  m_SizeDelta: {x: 0, y: 200}
+  m_AnchoredPosition: {x: 0, y: 662}
+  m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &919413013
 MonoBehaviour:
@@ -2777,7 +2772,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -40}
+  m_AnchoredPosition: {x: 0, y: -50}
   m_SizeDelta: {x: 600, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1098061664
@@ -3122,7 +3117,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -30}
+  m_AnchoredPosition: {x: 0, y: -72}
   m_SizeDelta: {x: -600, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1115494743
@@ -3182,7 +3177,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -3213,7 +3208,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -198.50183, y: 0, z: -197.3562, w: -76.133484}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3479,7 +3474,7 @@ MonoBehaviour:
   obstacleType: 0
   isActive: 1
   requireInteraction: 0
-  customQuestion: {fileID: 11400000, guid: 34a5798d1a6184340b0e144c865400c1, type: 2}
+  customQuestion: {fileID: 11400000, guid: 4be41a7be41750b47ba569179bf67ccd, type: 2}
   obstacleVisual: {fileID: 1546880574}
   blockingCollider: {fileID: 1834713765}
   removalType: 0
@@ -3488,8 +3483,6 @@ MonoBehaviour:
   sinkDepth: 3
   environmentZoneId: -1
   transformRadius: 10
-  approachDialogue: A mystical tree blocks your path...
-  successDialogue: The tree parts, revealing the way forward!
 --- !u!1 &1354284463
 GameObject:
   m_ObjectHideFlags: 0
@@ -4018,7 +4011,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: -1209.2365, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -4049,7 +4042,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1593568008
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4605,8 +4598,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 2}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 6.7348733, y: 2, z: 2}
+  m_Center: {x: -0.052149534, y: 0, z: 0}
 --- !u!114 &1751888169
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4622,7 +4615,7 @@ MonoBehaviour:
   obstacleType: 1
   isActive: 1
   requireInteraction: 0
-  customQuestion: {fileID: 11400000, guid: ae73163e1fd309347af2a9853821f0d2, type: 2}
+  customQuestion: {fileID: 11400000, guid: 0a6cb268cb4ad6c44855dc6b57ebedd1, type: 2}
   obstacleVisual: {fileID: 0}
   blockingCollider: {fileID: 0}
   removalType: 3
@@ -4631,8 +4624,6 @@ MonoBehaviour:
   sinkDepth: 3
   environmentZoneId: -1
   transformRadius: 10
-  approachDialogue: 
-  successDialogue: 
 --- !u!1 &1756116543
 GameObject:
   m_ObjectHideFlags: 0
@@ -5034,15 +5025,11 @@ MonoBehaviour:
   ufyoVisual: {fileID: 1098213328}
   ufyoSpawnPoint: {fileID: 0}
   showUfyoOnEnter: 1
-  junctionDialogue: You've reached a junction. Use the compass to find the right
-    path!
-  correctPathDialogue: The vegetation reveals the correct path!
-  wrongPathDialogue: Be careful, that path leads to a dead end!
   correctPath: {fileID: 363675164}
   wrongPaths: []
   correctPathZoneId: -1
   pathRevealObjects: []
-  customQuestion: {fileID: 11400000, guid: 695a96d0e49b5e247aea7c253c3606ca, type: 2}
+  customQuestion: {fileID: 11400000, guid: 61b0bc5a5875eb34694d523e5046f301, type: 2}
 --- !u!1 &1853125199
 GameObject:
   m_ObjectHideFlags: 0
@@ -5079,7 +5066,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -110}
+  m_AnchoredPosition: {x: 0, y: -120}
   m_SizeDelta: {x: 600, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1853125201
@@ -5348,7 +5335,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 800, y: 400}
+  m_SizeDelta: {x: 800, y: 600}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1900368300
 MonoBehaviour:

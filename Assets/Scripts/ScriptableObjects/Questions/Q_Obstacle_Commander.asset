@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Obstacle_Commander
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogue: "\u0130\u015Fte yine, zalim bir kral!\r\n\u0130yiler oldu\u011Fu
+    gibi bu d\xFCnyada, k\xF6t\xFCler de var.\r\nAma iyilerin yard\u0131mc\u0131s\u0131
+    Allah\u2019t\u0131r.\r\nRabbimizin vaadi var.\r\nAllah\u2019\u0131n yard\u0131m\u0131
+    mutlaka gelir.\r\nFakat kulunda gayret edip, \xE7abalamas\u0131 gerekir.\r\n\u015Eimdi
+    gayret s\u0131ras\u0131 bizde.\r\nBilgimizi kullan\u0131p, gelecek yard\u0131m\u0131
+    bekleyelim birlikte"
+  successDialogue: "Biliyorsun bu olay\u0131,\r\nGe\xE7mi\u015F zamanlarda bir \xE7ocuk
+    da ya\u015Fam\u0131\u015Ft\u0131.\r\nKocaman bir ordu ve zalim bir kralla kar\u015F\u0131la\u015Fm\u0131\u015Ft\u0131.\r\nAma
+    hi\xE7 korkmam\u0131\u015F, elindeki sapanla,\r\nZalim kral\u0131n tam aln\u0131na,\r\n\u2018\u2019Bismillah\u2019\u2019
+    diyerek ni\u015Fan alm\u0131\u015F,\r\nSapan\u0131yla ta\u015F atm\u0131\u015Ft\u0131.\r\nKendini
+    yenilmez sanan kral,\r\nO ta\u015Fla ma\u011Flup olmu\u015F,\r\nSava\u015F sona
+    ermi\u015F,\r\n\u0130nananlar kazanm\u0131\u015Ft\u0131.\r\nDemi\u015Ftim sana,
+    tek bir \xE7ocuk bile,\r\nNeler ba\u015Far\u0131r iman\u0131n\u0131n g\xFCc\xFCyle.\r\n\u015Eimdi
+    s\u0131ra sende!\r\nDo\u011Fru cevaplar\u0131 bul ve ilerle!"
+  questionText: "Hz. Davud\u2019a (a.s.) hangi kitap g\xF6nderilmi\u015Ftir?  "
+  answers:
+  - Tevrat
+  - 'Zebur '
+  - "\u0130ncil"
+  correctAnswerIndex: 1
+  questionType: 1
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

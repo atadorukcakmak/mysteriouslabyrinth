@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Gate_BesherTreeChapter2
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogue: "1. b\xF6l\xFCm sona erdi.\r\n2. sand\u0131\u011Fa ula\u015Fmak
+    i\xE7in yine i\xE7eri girmek gerekli.\r\nDo\u011Fru anahtar acaba hangisi?"
+  successDialogue: "Harikas\u0131n!\r\n\u0130\xE7eri girmeyi ba\u015Fard\u0131n!\r\nHaydi
+    ilerleyelim.\r\nBizi neler bekliyor g\xF6relim."
+  questionText: "A\u015Fiyan Biraderleri bu b\xF6l\xFCmde kim, nereye g\xF6t\xFCrd\xFC?"
+  answers:
+  - "Mart\u0131lar/Tevhit K\xFCt\xFCphanesine  "
+  - "Ebabil Ku\u015Flar\u0131/Ament\xFC Orman\u0131na   "
+  - "Ebabil ku\u015Flar\u0131/Tevhit K\xFCt\xFCphanesine"
+  correctAnswerIndex: 0
+  questionType: 0
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

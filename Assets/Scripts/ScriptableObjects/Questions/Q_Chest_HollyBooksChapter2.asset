@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Chest_HollyBooksChapter2
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogue: "\u0130\u015Fte sand\u0131k burada!\r\nS\u0131ra \u015Fifreyi
+    bulmada!"
+  successDialogue: "Zalim kral\u0131 yenen \xE7ocuk b\xFCy\xFCd\xFC.\r\nVe \xFClkenin
+    h\xFCk\xFCmdar\u0131 oldu.\r\nAma daha \xF6nemlisi,\r\nOna peygamberlik verildi.\r\nYahudilere
+    g\xF6nderilmi\u015Fti.\r\nAd\u0131; Davud (a.s.) idi.\r\nZebur ona indirildi.\r\n\xD6mr\xFC
+    boyunca insanlar\u0131 Allah\u2019\u0131n dinine davet etti.\r\n\xDClkesini hikmet
+    ve adaletle y\xF6netti.\r\n\u0130catlar yapar, (demir, z\u0131rh g\xF6rselleri
+    gelir)\r\nE\u015Fsiz sesiyle Allah\u2019\u0131 tesbih ederdi.\r\nDa\u011Flar
+    ve ku\u015Flar da onunla Allah\u2019\u0131 zikrederdi. (ku\u015F sesleri efekti)\r\nKendisinden
+    sonra yerine o\u011Flu Hz. S\xFCleyman ge\xE7ti.\r\nOda, babas\u0131 gibi hem
+    h\xFCk\xFCmdar hem peygamberdi.\r\nYahudiler zamanla Zebur\u2019u da de\u011Fi\u015Ftirdi.\r\n\u2018\u2019Allah
+    kat\u0131ndan olmad\u0131\u011F\u0131 halde, bu Allah kat\u0131ndand\u0131r.\u2019\u2019
+    dedi.\r\nD\xFCnyam\u0131zda d\xFCzen bozuldu.\r\nDo\u011Fru yoldan uzakla\u015Fan
+    insanl\u0131\u011F\u0131 kurtarmak i\xE7in,\r\nMerhamet sahibi Rabbimiz yine,
+    \r\nYeni bir resul ve kitap g\xF6nderdi.\r\nNeler oldu\u011Funu merak ettin de\u011Fil
+    mi?\r\n\u015Eimdi yeni kitab\u0131 bulma vakti."
+  questionText: "Kur\u2019an-\u0131 Kerim\u2019de ka\xE7 sure bulunmaktad\u0131r?"
+  answers:
+  - '114  '
+  - '124 '
+  - 104
+  correctAnswerIndex: 0
+  questionType: 3
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

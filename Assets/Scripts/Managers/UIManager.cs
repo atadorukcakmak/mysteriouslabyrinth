@@ -284,12 +284,12 @@ public class UIManager : MonoBehaviour
     public void UpdateHearts(int currentLives, int maxLives)
     {
         if (heartImages == null) return;
-        
+
         for (int i = 0; i < heartImages.Length; i++)
         {
             if (heartImages[i] != null)
             {
-                if (i < maxLives)
+                if (i < currentLives)
                 {
                     heartImages[i].gameObject.SetActive(true);
                     heartImages[i].sprite = i < currentLives ? heartFull : heartEmpty;
@@ -774,7 +774,7 @@ public class UIManager : MonoBehaviour
             yield return StartCoroutine(AnimateFeedbackText(message));
             
             // "Devam etmek için tıkla" mesajı ekle
-            feedbackText.text += "\n\n<size=70%><i>(Press SPACE or ENTER to continue...)</i></size>";
+            feedbackText.text += "\n\n<size=70%><i>(Devam etmek için SPACE veya ENTER tuşuna basın…)</i></size>";
             
             // Kullanıcının devam etmesini bekle
             successContinueCallback = onContinue;

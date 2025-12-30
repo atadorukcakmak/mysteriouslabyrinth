@@ -17,11 +17,6 @@ public class JunctionTrigger : MonoBehaviour
     [SerializeField] private Transform ufyoSpawnPoint;
     [SerializeField] private bool showUfyoOnEnter = true;
     
-    [Header("Dialogue")]
-    [SerializeField] private string junctionDialogue = "You've reached a junction. Use the compass to find the right path!";
-    [SerializeField] private string correctPathDialogue = "The vegetation reveals the correct path!";
-    [SerializeField] private string wrongPathDialogue = "Be careful, that path leads to a dead end!";
-    
     [Header("Paths")]
     [SerializeField] private Transform correctPath; // Reference to correct path direction
     [SerializeField] private Transform[] wrongPaths; // References to dead-end paths
@@ -110,7 +105,9 @@ public class JunctionTrigger : MonoBehaviour
         {
             ShowUfyo();
         }
-        
+
+        string junctionDialogue = customQuestion.approachDialogue;
+
         // Show junction dialogue, then enable compass
         if (!string.IsNullOrEmpty(junctionDialogue) && UIManager.Instance != null)
         {
@@ -228,7 +225,7 @@ public class JunctionTrigger : MonoBehaviour
             
             if (UIManager.Instance != null)
             {
-                UIManager.Instance.ShowDialogue(wrongPathDialogue);
+               // UIManager.Instance.ShowDialogue(wrongPathDialogue);
                 UIManager.Instance.SetCompassEnabled(true);
             }
         }
@@ -250,7 +247,9 @@ public class JunctionTrigger : MonoBehaviour
     {
         // Wait for question panel to close
         yield return new UnityEngine.WaitForSeconds(0.5f);
-        
+
+        string correctPathDialogue = customQuestion.successDialogue;
+
         // Show correct path dialogue and wait for Continue
         if (!string.IsNullOrEmpty(correctPathDialogue) && UIManager.Instance != null)
         {

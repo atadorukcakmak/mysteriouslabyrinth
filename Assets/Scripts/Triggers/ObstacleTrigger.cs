@@ -31,9 +31,7 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     [SerializeField] private int environmentZoneId = -1; // Zone to transform on success
     [SerializeField] private float transformRadius = 10f;
     
-    [Header("Dialogue")]
-    [SerializeField] private string approachDialogue;
-    [SerializeField] private string successDialogue;
+    
     #endregion
     
     #region Properties
@@ -82,7 +80,6 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             playerInRange = true;
             Debug.Log($"[ObstacleTrigger] Player entered {obstacleType} trigger: {gameObject.name}");
             
-            // Her zaman otomatik tetikle (E tuşu kurulumu sorunlu olabilir)
             StartDialogueThenQuestion();
         }
     }
@@ -128,7 +125,9 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         if (IsProcessing || IsCleared) return;
         
         IsProcessing = true;
-        
+
+        string approachDialogue = customQuestion.approachDialogue;
+
         // Diyalog varsa önce onu göster
         if (!string.IsNullOrEmpty(approachDialogue) && UIManager.Instance != null)
         {
@@ -140,8 +139,7 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         }
         else
         {
-            // Diyalog yoksa direkt soruyu göster
-            ShowQuestion();
+            ShowQuestion();             
         }
     }
     
@@ -179,27 +177,10 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     
     private QuestionData GetQuestion()
     {
-        // Use custom question if assigned
-        if (customQuestion != null)
-        {
             return customQuestion;
-        }
-        
-        // Otherwise get from chapter data based on obstacle type
-        ChapterData chapter = GameManager.Instance?.CurrentChapterData;
-        if (chapter == null) return null;
-        
-        switch (obstacleType)
-        {
-            case ObstacleType.Gate:
-                return chapter.gateQuestion;
-            case ObstacleType.MainObstacle:
-                return chapter.mainObstacleQuestion;
-            default:
-                return null;
-        }
     }
-    
+
+
     private void OnQuestionAnswered(bool isCorrect)
     {
         if (isCorrect)
@@ -234,7 +215,9 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     {
         // Wait a moment for question panel to close
         yield return new WaitForSeconds(0.5f);
-        
+
+        string successDialogue = customQuestion.successDialogue;
+
         // Show success dialogue and wait for Continue
         if (!string.IsNullOrEmpty(successDialogue) && UIManager.Instance != null)
         {
@@ -243,16 +226,15 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             {
                 dialogueClosed = true;
             });
-            
+
             // Wait until user presses Continue
             yield return new WaitUntil(() => dialogueClosed);
         }
-        
-        // Disable blocking collider
-        if (blockingCollider != null)
-        {
+            // Disable blocking collider
+            if (blockingCollider != null)
+            {
             blockingCollider.SetActive(false);
-        }
+            }
         
         switch (removalType)
         {

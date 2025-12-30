@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Gate_BesherTreeChapter1
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogue: "Gizemli labirent maceram\u0131z i\xE7in \xE7ok heyecanl\u0131y\u0131m.
+    \n\u0130\xE7eri girmeden \xF6nce, yolculuk duas\u0131n\u0131 okuyal\u0131m, \nSonra
+    yola koyulal\u0131m. \nAma dur bir dakika! \nGaliba duay\u0131 biraz kar\u0131\u015Ft\u0131rm\u0131\u015F\u0131m.
+    \nBo\u015Fluk olan yere hangi kelimeyi koymal\u0131y\u0131m?"
+  successDialogue: "Harikas\u0131n!\r\nDuam\u0131z\u0131 tamamlad\u0131n.\r\nAllah\u2019\u0131n
+    ad\u0131 an\u0131larak,\r\nO\u2019na g\xFCvenip dayan\u0131larak \xE7\u0131k\u0131lan
+    yollar, ba\u015Far\u0131 ile tamamlan\u0131r.\r\nUnutmamal\u0131s\u0131n!\r\n\u0130\u015Fte,
+    kap\u0131y\u0131 a\xE7may\u0131 ba\u015Fard\u0131n.\r\nMacera dolu yolculu\u011Fumuz
+    ba\u015Flas\u0131n!"
+  questionText: "\u201CY\xE2 Rabbi! (Hicretle girece\u011Fim yere) beni\u2026\u2026\u2026..
+    (ve ho\u015Fnutluk) \xFCzere dahil et. (\xC7\u0131kaca\u011F\u0131m yerden de) 
+    beni do\u011Fruluk (ve ho\u015Fnutluk) \xE7\u0131k\u0131\u015F\u0131yla \xE7\u0131kar.
+    Bana taraf\u0131ndan yard\u0131m edici bir\u2026\u2026\u2026\u2026 (iktidar)
+    ver\u2019\u2019"
+  answers:
+  - "G\xFCven/Kuvvet "
+  - "Do\u011Fruluk/Kuvvet "
+  - "Emniyet/Do\u011Fruluk"
+  correctAnswerIndex: 1
+  questionType: 0
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// ScriptableObject containing a single question with multiple choice answers.
@@ -6,10 +6,14 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Question", menuName = "Mysterious Labyrinth/Question Data")]
 public class QuestionData : ScriptableObject
 {
+    [Header("Dialogue")]
+    [TextArea(2, 4)] public string approachDialogue;
+    [TextArea(2, 4)] public string successDialogue;
+
     [Header("Question Settings")]
     [TextArea(2, 4)]
     public string questionText;
-    
+
     [Header("Answer Options")]
     public string[] answers = new string[3];
     
@@ -22,9 +26,9 @@ public class QuestionData : ScriptableObject
     
     [Header("Feedback")]
     [TextArea(1, 2)]
-    public string correctFeedback = "Correct!";
+    public string correctFeedback = "Doğru cevap!";
     [TextArea(1, 2)]
-    public string incorrectFeedback = "Wrong answer!";
+    public string incorrectFeedback = "Yanlış cevap!";
     
     /// <summary>
     /// Validates if the given answer index is correct.

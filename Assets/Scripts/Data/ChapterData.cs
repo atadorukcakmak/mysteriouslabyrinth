@@ -33,14 +33,7 @@ public class ChapterData : ScriptableObject
     [TextArea(2, 4)]
     public string introDialogue;
     [TextArea(2, 4)]
-    public string gateDialogue;
-    [TextArea(2, 4)]
-    public string obstacleDialogue;
-    [TextArea(2, 4)]
-    public string chestDialogue;
-    [TextArea(2, 4)]
     public string completionDialogue;
-    
     [Header("Scene")]
     public string sceneName;
 }

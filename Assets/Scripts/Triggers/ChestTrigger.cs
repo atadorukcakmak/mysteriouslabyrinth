@@ -32,9 +32,6 @@ public class ChestTrigger : MonoBehaviour, IInteractable
     [SerializeField] private float bookRiseHeight = 1.5f;
     
     [Header("Dialogue")]
-    [SerializeField] private string approachDialogue = "A mysterious chest! Perhaps it contains something valuable...";
-    [SerializeField] private string lockedDialogue = "The chest is locked. Answer the question to unlock it.";
-    [SerializeField] private string unlockDialogue = "The chest opens, revealing a sacred book!";
     [SerializeField] private string alreadyOpenDialogue = "You've already collected the book from this chest.";
     
     [Header("Effects")]
@@ -152,6 +149,7 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         
         if (isLocked)
         {
+            string lockedDialogue = customQuestion.approachDialogue;
             // Show locked dialogue, then ask question when dialogue finishes
             if (!string.IsNullOrEmpty(lockedDialogue) && UIManager.Instance != null)
             {
@@ -271,7 +269,7 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         
         // Award book to player
         AwardBook();
-        
+        string unlockDialogue = customQuestion.successDialogue;
         // Show dialogue and wait for Continue
         if (!string.IsNullOrEmpty(unlockDialogue) && UIManager.Instance != null)
         {

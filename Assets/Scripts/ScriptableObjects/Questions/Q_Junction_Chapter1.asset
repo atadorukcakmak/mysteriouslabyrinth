@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Junction_Chapter1
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogue: "Elimdeki haritaya g\xF6re, bu yollardan biri \xE7\u0131kmaz
+    sokak.\r\nDi\u011Feri ise seni, sakl\u0131 sand\u0131\u011Fa g\xF6t\xFCrecek.\r\n\u015Eayet
+    yanl\u0131\u015F yolu se\xE7ersen, bu bize zaman kaybettirecek.\r\n\r\nDo\u011Fru
+    yolu se\xE7mek i\xE7in bir k\u0131lavuza ihtiyac\u0131m\u0131z var.\r\nKur\u2019an\u2019dan,
+    daha do\u011Fru yol g\xF6steren mi var?\r\nK\u0131lavuzumuz gelsin!\r\nDo\u011Fru
+    cevab\u0131 verirsen, bize yolumuzu g\xF6stersin!"
+  successDialogue: "Neler oldu b\xF6yle!\r\nDo\u011Fru cevab\u0131 vermenle, \r\nKur\u2019an
+    bilgin sayesinde,\r\nGizemli labirent bir anda d\xF6n\xFC\u015F\xFCverdi,\r\nCennet
+    gibi bir yere. \r\nKur\u2019an ilmi her yeri g\xFCzelle\u015Ftirir.\r\nKur\u2019an
+    dolu bir kalp, e\u015Fsiz bir saray gibidir.\r\nO y\xFCzden, Peygamberimiz (s.a.s);\r\n
+    \u201CKalbinde Kur\u2019an\u2019dan bir miktar bulunmayan kimse harap ev gibidir.\u201D
+    (Tirmiz\xEE)\r\ndemi\u015Ftir."
+  questionText: "\u2018\u2018Oku! Yaratan Rabbinin ad\u0131yla oku\u2019\u2019 (Alak/1-5)"
+  answers:
+  - "\u0130lk inen ayetlerdir."
+  - "Mekke\u2019nin fethinde inen ayetlerdir."
+  - En son inen ayetlerdir.
+  correctAnswerIndex: 0
+  questionType: 2
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

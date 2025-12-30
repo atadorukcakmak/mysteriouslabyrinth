@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Junction_Chapter2
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogue: "Yine bir yol ayr\u0131m\u0131nda, \r\nKarar a\u015Famas\u0131nday\u0131z.\r\nDo\u011Fru
+    yolu bulmak i\xE7in \r\nKur\u2019an\u2019dan yard\u0131m almal\u0131y\u0131z.\r\nGelsin
+    Kur\u2019an sorumuz;\r\nBelli olsun yolumuz!"
+  successDialogue: 
+  questionText: "\u2018\u2018\u2026Anla\u015Fmazl\u0131\u011Fa d\xFC\u015Ft\xFCkleri
+    \u015Feylerde, insanlar aras\u0131nda h\xFCkmetmek i\xE7in onlar\u0131n beraberinde
+    hakikati g\xF6steren kitap(lar) da indirdi\u2026\u2019\u2019\r\nHangi surede
+    yer al\u0131r?"
+  answers:
+  - 'Yasin Suresi  '
+  - "\u0130hlas Suresi\t"
+  - 'Bakara Suresi '
+  correctAnswerIndex: 2
+  questionType: 2
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"
