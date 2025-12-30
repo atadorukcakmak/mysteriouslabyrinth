@@ -56,6 +56,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button[] answerButtons;
     [SerializeField] private TMP_Text[] answerTexts;
     [SerializeField] private TMP_Text feedbackText;
+    [SerializeField] private Image[] answerKeyIcons; // Gate soruları için anahtar ikonları
+    [SerializeField] private Sprite keySprite; // Anahtar sprite'ı (Assets/Sprites/anahtar.png)
     
     [Header("Chapter Transition")]
     [SerializeField] private TMP_Text chapterTitleText;
@@ -87,6 +89,7 @@ public class UIManager : MonoBehaviour
     private System.Collections.Generic.Queue<string> dialogueQueue = new System.Collections.Generic.Queue<string>();
     private bool isDialogueAnimating;
     private System.Action onDialogueQueueCompleteCallback;
+    private bool stayInUIAfterDialogue; // Diyalog bitince UI mode'da kal
     
     // Success continue system
     private System.Action successContinueCallback;
@@ -200,10 +203,11 @@ public class UIManager : MonoBehaviour
     
     private void SetupButtonListeners()
     {
-        // Compass button
+        // Compass button - initially hidden
         if (compassButton != null)
         {
             compassButton.onClick.AddListener(() => OnCompassClicked?.Invoke());
+            compassButton.gameObject.SetActive(false); // Default olarak gizli
         }
         
         // Continue button for dialogue
@@ -324,13 +328,58 @@ public class UIManager : MonoBehaviour
     }
     
     /// <summary>
+    /// Belirtilen indeksteki book slot'un RectTransform'unu döndürür.
+    /// ChestTrigger'daki kitap uçuşu animasyonu için kullanılır.
+    /// </summary>
+    public RectTransform GetBookSlotTransform(int slotIndex)
+    {
+        if (bookSlots == null || slotIndex < 0 || slotIndex >= bookSlots.Length) return null;
+        
+        if (bookSlots[slotIndex] != null)
+        {
+            return bookSlots[slotIndex].rectTransform;
+        }
+        return null;
+    }
+    
+    /// <summary>
+    /// İlk boş book slot'un RectTransform'unu döndürür.
+    /// </summary>
+    public RectTransform GetNextEmptyBookSlot()
+    {
+        if (bookSlots == null) return null;
+        
+        for (int i = 0; i < bookSlots.Length; i++)
+        {
+            if (bookSlots[i] != null && bookSlots[i].sprite == null)
+            {
+                return bookSlots[i].rectTransform;
+            }
+        }
+        
+        // Boş slot yoksa ilk slot'u döndür
+        if (bookSlots.Length > 0 && bookSlots[0] != null)
+        {
+            return bookSlots[0].rectTransform;
+        }
+        
+        return null;
+    }
+    
+    /// <summary>
     /// Enables or disables the compass button.
     /// </summary>
     public void SetCompassEnabled(bool enabled)
     {
         if (compassButton != null)
         {
+            compassButton.gameObject.SetActive(enabled);
             compassButton.interactable = enabled;
+            Debug.Log($"[UIManager] Compass button set to: {(enabled ? "ENABLED" : "DISABLED")}");
+        }
+        else
+        {
+            Debug.LogWarning("[UIManager] Compass button is null!");
         }
     }
     #endregion
@@ -381,6 +430,16 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void ShowDialogueWithCallback(string text, System.Action onComplete)
     {
+        stayInUIAfterDialogue = false;
+        ShowDialogueSequence(new string[] { text }, onComplete);
+    }
+    
+    /// <summary>
+    /// Tek diyalog gösterir, bitince callback çağırır ve UI mode'da kalır (oyuncu hareket edemez, cursor açık).
+    /// </summary>
+    public void ShowDialogueWithCallbackStayInUI(string text, System.Action onComplete)
+    {
+        stayInUIAfterDialogue = true;
         ShowDialogueSequence(new string[] { text }, onComplete);
     }
     
@@ -590,6 +649,15 @@ public class UIManager : MonoBehaviour
         
         callback?.Invoke();
         
+        // UI mode'da kalma isteği varsa Playing'e dönme
+        if (stayInUIAfterDialogue)
+        {
+            // Cursor açık kalsın, hareket edilemesin ama Playing'e dönme
+            Debug.Log("[UIManager] Staying in UI mode after dialogue");
+            stayInUIAfterDialogue = false; // Flag'i sıfırla
+            return;
+        }
+        
         // Eğer soru beklemiyorsa Playing'e dön
         if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Dialogue)
         {
@@ -604,6 +672,7 @@ public class UIManager : MonoBehaviour
         // Kuyruğu temizle
         dialogueQueue.Clear();
         onDialogueQueueCompleteCallback = null;
+        stayInUIAfterDialogue = false;
         
         if (dialogueCoroutine != null)
         {
@@ -613,6 +682,25 @@ public class UIManager : MonoBehaviour
         
         SetPanelActive(dialoguePanel, false);
         OnDialogueClosed?.Invoke();
+    }
+    
+    /// <summary>
+    /// UI mode'dan çıkıp oyun moduna döner (cursor kilitlenir, hareket açılır).
+    /// </summary>
+    public void ReturnToGameMode()
+    {
+        stayInUIAfterDialogue = false;
+        SetCompassEnabled(false);
+        
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetGameState(GameState.Playing);
+        }
+        
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        
+        Debug.Log("[UIManager] Returned to game mode");
         
         if (GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Dialogue)
         {
@@ -640,6 +728,9 @@ public class UIManager : MonoBehaviour
             questionText.text = question.questionText;
         }
         
+        // Gate soruları için anahtar ikonu göster
+        bool isGateQuestion = question.questionType == QuestionType.Gate;
+        
         // Set answer buttons
         for (int i = 0; i < answerButtons.Length; i++)
         {
@@ -648,19 +739,39 @@ public class UIManager : MonoBehaviour
                 answerButtons[i].gameObject.SetActive(true);
                 answerButtons[i].interactable = true;
                 
-                // Reset button color
+                // Reset ALL button colors to default (white)
                 ColorBlock colors = answerButtons[i].colors;
                 colors.normalColor = Color.white;
+                colors.highlightedColor = new Color(0.9f, 0.9f, 0.9f, 1f); // Slight gray on hover
+                colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+                colors.selectedColor = Color.white;
+                colors.disabledColor = new Color(0.8f, 0.8f, 0.8f, 0.5f); // Gray when disabled
                 answerButtons[i].colors = colors;
                 
                 if (answerTexts[i] != null)
                 {
                     answerTexts[i].text = question.answers[i];
                 }
+                
+                // Anahtar ikonunu göster/gizle (sadece Gate soruları için)
+                if (answerKeyIcons != null && i < answerKeyIcons.Length && answerKeyIcons[i] != null)
+                {
+                    answerKeyIcons[i].gameObject.SetActive(isGateQuestion);
+                    if (isGateQuestion && keySprite != null)
+                    {
+                        answerKeyIcons[i].sprite = keySprite;
+                    }
+                }
             }
             else
             {
                 answerButtons[i].gameObject.SetActive(false);
+                
+                // Bu şık gizliyse anahtar ikonunu da gizle
+                if (answerKeyIcons != null && i < answerKeyIcons.Length && answerKeyIcons[i] != null)
+                {
+                    answerKeyIcons[i].gameObject.SetActive(false);
+                }
             }
         }
         
@@ -862,10 +973,24 @@ public class UIManager : MonoBehaviour
         }
     }
     
-    public void CloseQuestion()
+    /// <summary>
+    /// Soru panelini kapatır.
+    /// </summary>
+    /// <param name="stayInUIMode">True ise UI mode'da kalır, false ise Playing'e döner.</param>
+    public void CloseQuestion(bool stayInUIMode = false)
     {
         isShowingQuestion = false;
         SetPanelActive(questionPanel, false);
+        
+        // UI mode'da kalma isteği varsa sadece paneli kapat
+        if (stayInUIMode)
+        {
+            Debug.Log("[UIManager] Question closed, staying in UI mode");
+            // Cursor açık kalsın
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
         
         // Always restore to Playing state after question (unless in special states)
         if (GameManager.Instance != null)

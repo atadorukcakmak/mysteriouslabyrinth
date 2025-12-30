@@ -27,9 +27,20 @@ public class ChestTrigger : MonoBehaviour, IInteractable
     [SerializeField] private Transform bookSpawnPoint;
     
     [Header("Animation")]
+    [SerializeField] private ChestAnimation chestAnimation; // Animator tabanlı animasyon
+    [SerializeField] private bool useAnimator = true; // Animator mı yoksa kod animasyonu mu?
     [SerializeField] private float openDuration = 1f;
     [SerializeField] private float bookRiseDuration = 1.5f;
     [SerializeField] private float bookRiseHeight = 1.5f;
+    
+    [Header("Book Fly To UI")]
+    [SerializeField] private float bookFlyDuration = 1.0f; // Kitabın UI'a uçma süresi
+    [SerializeField] private float bookShrinkScale = 0.1f; // Kitabın küçülme oranı
+    [SerializeField] private RectTransform bookSlotsContainer; // UI'daki book slots container
+    
+    [Header("Timing")]
+    [Tooltip("Sandık açıldıktan sonra kitabın yükselmeye başlaması için bekleme süresi")]
+    [SerializeField] private float delayBeforeBookRise = 0.5f;
     
     [Header("Dialogue")]
     [SerializeField] private string alreadyOpenDialogue = "You've already collected the book from this chest.";
@@ -62,6 +73,24 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         if (audioSource == null && unlockSound != null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        
+        // ChestAnimation'ı otomatik bul (atanmamışsa)
+        if (chestAnimation == null)
+        {
+            chestAnimation = GetComponentInChildren<ChestAnimation>();
+        }
+        
+        // Debug: Referansları kontrol et
+        Debug.Log($"[ChestTrigger] Awake - Checking references for {gameObject.name}:");
+        Debug.Log($"  - chestAnimation: {(chestAnimation != null ? chestAnimation.gameObject.name : "NULL")}");
+        Debug.Log($"  - bookVisual: {(bookVisual != null ? bookVisual.name : "NULL")}");
+        Debug.Log($"  - bookSpawnPoint: {(bookSpawnPoint != null ? bookSpawnPoint.name : "NULL")}");
+        Debug.Log($"  - useAnimator: {useAnimator}");
+        
+        if (bookVisual == null)
+        {
+            Debug.LogWarning($"[ChestTrigger] WARNING: bookVisual is not assigned in {gameObject.name}! Assign it in Inspector.");
         }
         
         // Initial state
@@ -246,44 +275,77 @@ public class ChestTrigger : MonoBehaviour, IInteractable
     
     private IEnumerator OpenChestSequence()
     {
-        // Wait for question panel to fully close
-        yield return new WaitForSeconds(0.5f);
+        // Bir frame bekle - soru paneli kapansın
+        yield return null;
         
-        // Play unlock sound
+        // 1. Play unlock sound
         if (audioSource != null && unlockSound != null)
         {
             audioSource.PlayOneShot(unlockSound);
         }
         
-        // Play particles
+        // 2. Play particles
         if (unlockParticles != null)
         {
             unlockParticles.Play();
         }
         
-        // Animate chest opening
-        yield return StartCoroutine(AnimateChestOpen());
+        // 3. Chest açılma animasyonu
+        Debug.Log("[ChestTrigger] Step 1: Playing chest open animation");
+        if (useAnimator && chestAnimation != null)
+        {
+            bool animationComplete = false;
+            chestAnimation.PlayOpenAnimation(() => animationComplete = true);
+            yield return new WaitUntil(() => animationComplete);
+        }
+        else
+        {
+            yield return StartCoroutine(AnimateChestOpen());
+        }
         
-        // Show book rising
+        // 4. Sandık tamamen açılana kadar bekle
+        if (delayBeforeBookRise > 0)
+        {
+            Debug.Log($"[ChestTrigger] Waiting {delayBeforeBookRise}s for chest to fully open...");
+            yield return new WaitForSeconds(delayBeforeBookRise);
+        }
+        
+        // 5. Kitap dönerek yukarı çıkıyor
+        Debug.Log("[ChestTrigger] Step 2: Book rising from chest");
         yield return StartCoroutine(AnimateBookRise());
         
-        // Award book to player
+        // 5. Kitap UI'daki book slot'a uçuyor
+        Debug.Log("[ChestTrigger] Step 3: Book flying to UI");
+        yield return StartCoroutine(AnimateBookFlyToUI());
+        
+        // 6. Kitabı envantere ekle
         AwardBook();
-        string unlockDialogue = customQuestion.successDialogue;
-        // Show dialogue and wait for Continue
-        if (!string.IsNullOrEmpty(unlockDialogue) && UIManager.Instance != null)
+        
+        // 7. Success diyaloğunu göster
+        Debug.Log("[ChestTrigger] Step 4: Showing success dialogue");
+        string successDialogue = customQuestion != null ? customQuestion.successDialogue : null;
+        
+        if (!string.IsNullOrEmpty(successDialogue) && UIManager.Instance != null)
         {
             bool dialogueClosed = false;
-            UIManager.Instance.ShowDialogueWithCallback(unlockDialogue, () =>
+            UIManager.Instance.ShowDialogueWithCallback(successDialogue, () =>
             {
                 dialogueClosed = true;
             });
             
-            // Wait until user presses Continue
             yield return new WaitUntil(() => dialogueClosed);
         }
         
-        // Check for chapter completion
+        // 8. Continue'a basıldı - debug log
+        Debug.Log("elhamdulillah");
+        
+        // 9. Oyun moduna dön
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ReturnToGameMode();
+        }
+        
+        // 10. Bölüm tamamlama kontrolü
         CheckChapterCompletion();
     }
     
@@ -330,14 +392,48 @@ public class ChestTrigger : MonoBehaviour, IInteractable
     
     private IEnumerator AnimateBookRise()
     {
-        if (bookVisual == null) yield break;
+        // Null kontrolü ve debug
+        if (bookVisual == null)
+        {
+            Debug.LogError("[ChestTrigger] ERROR: bookVisual is NULL! Assign it in Inspector.");
+            yield break;
+        }
+        
+        Debug.Log($"[ChestTrigger] BookVisual found: {bookVisual.name}, activeSelf: {bookVisual.activeSelf}");
+        
+        // Kitabın renderer'larını kontrol et
+        Renderer[] renderers = bookVisual.GetComponentsInChildren<Renderer>(true);
+        Debug.Log($"[ChestTrigger] Book has {renderers.Length} renderers");
+        foreach (var rend in renderers)
+        {
+            Debug.Log($"[ChestTrigger]   - Renderer: {rend.gameObject.name}, enabled: {rend.enabled}, material: {(rend.material != null ? rend.material.name : "NULL")}");
+        }
         
         // Position book at spawn point or chest center
         Vector3 startPos = bookSpawnPoint != null ? bookSpawnPoint.position : transform.position;
         Vector3 endPos = startPos + Vector3.up * bookRiseHeight;
         
+        Debug.Log($"[ChestTrigger] Book will rise from {startPos} to {endPos}");
+        Debug.Log($"[ChestTrigger] Camera position: {(Camera.main != null ? Camera.main.transform.position.ToString() : "NO CAMERA")}");
+        
+        // Kitabı pozisyonla ve aktif et
         bookVisual.transform.position = startPos;
+        bookVisual.transform.localScale = Vector3.one;
         bookVisual.SetActive(true);
+        
+        // Tüm child'ları da aktif et
+        foreach (Transform child in bookVisual.GetComponentsInChildren<Transform>(true))
+        {
+            child.gameObject.SetActive(true);
+        }
+        
+        // Renderer'ları aktif et
+        foreach (var rend in renderers)
+        {
+            rend.enabled = true;
+        }
+        
+        Debug.Log($"[ChestTrigger] Book activated at position: {bookVisual.transform.position}, scale: {bookVisual.transform.localScale}");
         
         float elapsed = 0f;
         
@@ -358,30 +454,104 @@ public class ChestTrigger : MonoBehaviour, IInteractable
             yield return null;
         }
         
-        // Continue floating and rotating
-        StartCoroutine(FloatAndRotate());
+        // Kitap yukarıda bekliyor - artık UI'a uçacak
+        Debug.Log($"[ChestTrigger] Book rise complete at position: {bookVisual.transform.position}");
     }
     
-    private IEnumerator FloatAndRotate()
+    private IEnumerator AnimateBookFlyToUI()
     {
         if (bookVisual == null) yield break;
         
-        Vector3 basePos = bookVisual.transform.position;
-        float floatAmplitude = 0.2f;
-        float floatSpeed = 2f;
-        float rotateSpeed = 45f;
+        // UI hedef pozisyonunu bul
+        RectTransform targetSlot = null;
         
-        while (bookVisual.activeSelf)
+        // Önce Inspector'dan atanan container'ı dene
+        if (bookSlotsContainer != null)
         {
-            // Float up and down
-            float yOffset = Mathf.Sin(Time.time * floatSpeed) * floatAmplitude;
-            bookVisual.transform.position = basePos + Vector3.up * yOffset;
+            targetSlot = bookSlotsContainer;
+        }
+        // Sonra UIManager'dan dinamik olarak al
+        else if (UIManager.Instance != null)
+        {
+            targetSlot = UIManager.Instance.GetNextEmptyBookSlot();
+        }
+        
+        // Ana kamerayı al
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            Debug.LogWarning("[ChestTrigger] Main camera not found!");
+            bookVisual.SetActive(false);
+            yield break;
+        }
+        
+        // Hedef ekran pozisyonunu hesapla
+        Vector3 targetScreenPos;
+        if (targetSlot != null)
+        {
+            // UI element'in ekran pozisyonunu al
+            targetScreenPos = RectTransformUtility.WorldToScreenPoint(null, targetSlot.position);
+        }
+        else
+        {
+            // Fallback: Ekranın sağ üst köşesi
+            targetScreenPos = new Vector3(Screen.width - 100f, Screen.height - 100f, 0f);
+        }
+        
+        // Kitabın başlangıç değerleri
+        Vector3 startWorldPos = bookVisual.transform.position;
+        Vector3 startScale = bookVisual.transform.localScale;
+        Vector3 endScale = startScale * bookShrinkScale;
+        
+        float elapsed = 0f;
+        
+        while (elapsed < bookFlyDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / bookFlyDuration;
             
-            // Rotate
+            // Ease in-out (smooth)
+            float easedT = t < 0.5f ? 2f * t * t : 1f - Mathf.Pow(-2f * t + 2f, 2f) / 2f;
+            
+            // Hedef world pozisyonunu hesapla
+            // Kitabı kameraya doğru çekiyoruz ama çok yakın değil
+            float distanceFromCamera = Mathf.Lerp(
+                Vector3.Distance(startWorldPos, mainCamera.transform.position),
+                2f, // Son mesafe
+                easedT
+            );
+            
+            Vector3 directionToTarget = (mainCamera.ScreenToWorldPoint(new Vector3(
+                targetScreenPos.x,
+                targetScreenPos.y,
+                distanceFromCamera
+            )) - startWorldPos).normalized;
+            
+            Vector3 targetWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(
+                targetScreenPos.x,
+                targetScreenPos.y,
+                distanceFromCamera
+            ));
+            
+            // Pozisyonu lerp et (eğrisel hareket için bezier kullanabiliriz)
+            // Basit versiyon: düz lerp
+            bookVisual.transform.position = Vector3.Lerp(startWorldPos, targetWorldPos, easedT);
+            
+            // Scale'i küçült
+            bookVisual.transform.localScale = Vector3.Lerp(startScale, endScale, easedT);
+            
+            // Döndürmeye devam et (hızlanarak)
+            float rotateSpeed = Mathf.Lerp(180f, 720f, easedT);
             bookVisual.transform.Rotate(Vector3.up, rotateSpeed * Time.deltaTime);
             
             yield return null;
         }
+        
+        // Kitap UI'a ulaştı - gizle
+        bookVisual.SetActive(false);
+        bookVisual.transform.localScale = startScale; // Scale'i resetle
+        
+        Debug.Log("[ChestTrigger] Book fly to UI complete");
     }
     #endregion
     
@@ -462,6 +632,12 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         SetChestVisuals(false);
         
         if (chestClosed != null) chestClosed.transform.localScale = Vector3.one;
+        
+        // Animator'ı da sıfırla
+        if (chestAnimation != null)
+        {
+            chestAnimation.SetClosedImmediate();
+        }
     }
     #endregion
     

@@ -213,12 +213,12 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     
     private IEnumerator RemovalCoroutine()
     {
-        // Wait a moment for question panel to close
-        yield return new WaitForSeconds(0.5f);
+        // Bir frame bekle - soru paneli kapansın
+        yield return null;
 
-        string successDialogue = customQuestion.successDialogue;
+        string successDialogue = customQuestion != null ? customQuestion.successDialogue : null;
 
-        // Show success dialogue and wait for Continue
+        // Show success dialogue and wait for Continue (hala UI mode'dayız)
         if (!string.IsNullOrEmpty(successDialogue) && UIManager.Instance != null)
         {
             bool dialogueClosed = false;
@@ -230,11 +230,18 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             // Wait until user presses Continue
             yield return new WaitUntil(() => dialogueClosed);
         }
-            // Disable blocking collider
-            if (blockingCollider != null)
-            {
+        
+        // Oyun moduna dön - success diyaloğu bitti
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ReturnToGameMode();
+        }
+        
+        // Disable blocking collider
+        if (blockingCollider != null)
+        {
             blockingCollider.SetActive(false);
-            }
+        }
         
         switch (removalType)
         {

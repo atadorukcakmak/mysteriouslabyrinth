@@ -17,10 +17,6 @@ public class JunctionTrigger : MonoBehaviour
     [SerializeField] private Transform ufyoSpawnPoint;
     [SerializeField] private bool showUfyoOnEnter = true;
     
-    [Header("Paths")]
-    [SerializeField] private Transform correctPath; // Reference to correct path direction
-    [SerializeField] private Transform[] wrongPaths; // References to dead-end paths
-    
     [Header("Environment Zones")]
     [SerializeField] private int correctPathZoneId = -1; // Zone to transform when correct
     [SerializeField] private GameObject[] pathRevealObjects; // Objects to activate on correct answer
@@ -106,16 +102,17 @@ public class JunctionTrigger : MonoBehaviour
             ShowUfyo();
         }
 
-        string junctionDialogue = customQuestion.approachDialogue;
+        string junctionDialogue = customQuestion != null ? customQuestion.approachDialogue : null;
 
-        // Show junction dialogue, then enable compass
+        // Show Ufyo dialogue, then enable compass on Continue (stay in UI mode)
         if (!string.IsNullOrEmpty(junctionDialogue) && UIManager.Instance != null)
         {
-            Debug.Log($"[JunctionTrigger] Showing dialogue: {junctionDialogue}");
-            UIManager.Instance.ShowDialogueWithCallback(junctionDialogue, () =>
+            Debug.Log($"[JunctionTrigger] Showing Ufyo dialogue: {junctionDialogue}");
+            // UI mode'da kal - oyuncu hareket edemez, cursor açık
+            UIManager.Instance.ShowDialogueWithCallbackStayInUI(junctionDialogue, () =>
             {
-                // Diyalog bittikten sonra pusula butonunu aktif et
-                Debug.Log("[JunctionTrigger] Dialogue complete, enabling compass");
+                // Continue'a basılınca compass butonunu aktif et (hala UI mode'da)
+                Debug.Log("[JunctionTrigger] Dialogue complete, enabling compass button (staying in UI mode)");
                 if (UIManager.Instance != null)
                 {
                     UIManager.Instance.SetCompassEnabled(true);
@@ -124,9 +121,18 @@ public class JunctionTrigger : MonoBehaviour
         }
         else
         {
-            // Diyalog yoksa direkt soruyu sor (compass'a gerek yok)
-            Debug.Log("[JunctionTrigger] No dialogue, asking question directly");
-            AskJunctionQuestion();
+            // Diyalog yoksa UI mode'a geç ve compass'ı aktif et
+            Debug.Log("[JunctionTrigger] No dialogue, entering UI mode and enabling compass");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SetGameState(GameState.Dialogue);
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.SetCompassEnabled(true);
+            }
         }
     }
     
@@ -179,16 +185,14 @@ public class JunctionTrigger : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[JunctionTrigger] No question available for junction {junctionIndex}. Revealing path automatically.");
-            // Soru yok - direkt yolu göster
-            // Önce compass'ı kapat ve normal duruma geç
+            Debug.LogWarning($"[JunctionTrigger] No question available for junction {junctionIndex}. Resolving automatically.");
+            // Soru yok - direkt çöz
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.SetCompassEnabled(false);
             }
             
-            // Reveal path
-            RevealCorrectPath();
+            OnJunctionResolved();
         }
     }
     
@@ -216,45 +220,45 @@ public class JunctionTrigger : MonoBehaviour
     {
         if (isCorrect)
         {
-            RevealCorrectPath();
+            // Doğru cevap - başarı diyaloğunu göster
+            OnJunctionResolved();
         }
         else
         {
-            // Wrong answer - can try again later or proceed with risk
+            // Wrong answer - can try again later
             compassUsed = false; // Allow retry
             
             if (UIManager.Instance != null)
             {
-               // UIManager.Instance.ShowDialogue(wrongPathDialogue);
                 UIManager.Instance.SetCompassEnabled(true);
             }
         }
     }
     #endregion
     
-    #region Path Reveal
-    private void RevealCorrectPath()
+    #region Junction Resolution
+    private void OnJunctionResolved()
     {
         IsResolved = true;
         
-        Debug.Log($"[JunctionTrigger] Revealing correct path at junction {junctionIndex}");
+        Debug.Log($"[JunctionTrigger] Junction {junctionIndex} resolved");
         
-        // Delay dialogue to let question panel close
-        StartCoroutine(RevealPathSequence());
+        // Delay to let question panel close
+        StartCoroutine(ResolutionSequence());
     }
     
-    private System.Collections.IEnumerator RevealPathSequence()
+    private System.Collections.IEnumerator ResolutionSequence()
     {
-        // Wait for question panel to close
-        yield return new UnityEngine.WaitForSeconds(0.5f);
+        // Bir frame bekle - soru paneli kapansın
+        yield return null;
 
-        string correctPathDialogue = customQuestion.successDialogue;
+        string successDialogue = customQuestion != null ? customQuestion.successDialogue : null;
 
-        // Show correct path dialogue and wait for Continue
-        if (!string.IsNullOrEmpty(correctPathDialogue) && UIManager.Instance != null)
+        // Show success dialogue and wait for Continue (hala UI mode'dayız)
+        if (!string.IsNullOrEmpty(successDialogue) && UIManager.Instance != null)
         {
             bool dialogueClosed = false;
-            UIManager.Instance.ShowDialogueWithCallback(correctPathDialogue, () =>
+            UIManager.Instance.ShowDialogueWithCallback(successDialogue, () =>
             {
                 dialogueClosed = true;
             });
@@ -263,17 +267,13 @@ public class JunctionTrigger : MonoBehaviour
             yield return new UnityEngine.WaitUntil(() => dialogueClosed);
         }
         
-        // Transform environment to show correct path
-        if (EnvironmentManager.Instance != null)
+        // Başarı diyaloğu Continue'a basıldıktan sonra
+        Debug.Log("Bismillahirahmanirahim");
+        
+        // Transform environment zone if specified
+        if (EnvironmentManager.Instance != null && correctPathZoneId >= 0)
         {
-            if (correctPathZoneId >= 0)
-            {
-                EnvironmentManager.Instance.TransformZone(correctPathZoneId);
-            }
-            else if (correctPath != null)
-            {
-                EnvironmentManager.Instance.TransformNearbyZones(correctPath.position, 5f);
-            }
+            EnvironmentManager.Instance.TransformZone(correctPathZoneId);
         }
         
         // Activate path reveal objects (vegetation, markers, etc.)
@@ -287,6 +287,12 @@ public class JunctionTrigger : MonoBehaviour
         
         // Disable this junction
         isActive = false;
+        
+        // Oyun moduna dön - oyuncu artık hareket edebilir
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ReturnToGameMode();
+        }
     }
     
     private void ShowPathRevealObjects()
@@ -360,7 +366,7 @@ public class JunctionTrigger : MonoBehaviour
     {
         if (!IsResolved)
         {
-            RevealCorrectPath();
+            OnJunctionResolved();
         }
     }
     
@@ -378,17 +384,6 @@ public class JunctionTrigger : MonoBehaviour
         HidePathRevealObjects();
     }
     
-    /// <summary>
-    /// Gets the direction to the correct path.
-    /// </summary>
-    public Vector3 GetCorrectPathDirection()
-    {
-        if (correctPath != null)
-        {
-            return (correctPath.position - transform.position).normalized;
-        }
-        return Vector3.forward;
-    }
     #endregion
     
     #region Gizmos
@@ -397,28 +392,6 @@ public class JunctionTrigger : MonoBehaviour
         // Draw junction area
         Gizmos.color = new Color(0f, 1f, 1f, 0.3f);
         Gizmos.DrawCube(transform.position, new Vector3(5f, 2f, 5f));
-        
-        // Draw correct path direction
-        if (correctPath != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(transform.position, correctPath.position);
-            Gizmos.DrawSphere(correctPath.position, 0.5f);
-        }
-        
-        // Draw wrong path directions
-        if (wrongPaths != null)
-        {
-            Gizmos.color = Color.red;
-            foreach (var wrongPath in wrongPaths)
-            {
-                if (wrongPath != null)
-                {
-                    Gizmos.DrawLine(transform.position, wrongPath.position);
-                    Gizmos.DrawSphere(wrongPath.position, 0.3f);
-                }
-            }
-        }
         
         // Draw Ufyo spawn point
         if (ufyoSpawnPoint != null)

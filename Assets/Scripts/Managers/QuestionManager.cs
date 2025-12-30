@@ -188,14 +188,15 @@ public class QuestionManager : MonoBehaviour
                 UIManager.Instance.ShowSuccessDialogue(feedback, () =>
                 {
                     // Continue'a basıldığında burası çalışır
+                    // Soru panelini kapat ama UI mode'da kal - trigger success diyaloğunu gösterecek
+                    if (UIManager.Instance != null)
+                    {
+                        UIManager.Instance.CloseQuestion(stayInUIMode: true);
+                    }
+                    
                     OnQuestionAnswered?.Invoke(true);
                     currentCallback?.Invoke(true);
                     CompleteQuestion();
-                    
-                    if (UIManager.Instance != null)
-                    {
-                        UIManager.Instance.CloseQuestion();
-                    }
                 });
             }
         }
