@@ -12,6 +12,10 @@ public class JunctionTrigger : MonoBehaviour
     [SerializeField] private int junctionIndex = 0; // Index for junction questions array
     [SerializeField] private bool isActive = true;
     
+    [Header("Camera")]
+    [SerializeField] private Camera triggerCamera; // Bu trigger için özel kamera
+    [SerializeField] private float cameraTransitionDuration = 1.0f;
+    
     [Header("Ufyo Appearance")]
     [SerializeField] private GameObject ufyoVisual; // Ufyo character/sprite at junction
     [SerializeField] private Transform ufyoSpawnPoint;
@@ -33,6 +37,7 @@ public class JunctionTrigger : MonoBehaviour
     #region Private Fields
     private Collider triggerCollider;
     private bool compassUsed;
+    private bool isInSequence; // Kamera geçişi veya diyalog sırasında true
     #endregion
     
     #region Initialization
@@ -85,6 +90,13 @@ public class JunctionTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            // Eğer sequence içindeysek (kamera geçişi, diyalog vs.) çıkışı yoksay
+            if (isInSequence)
+            {
+                Debug.Log("[JunctionTrigger] Player exited trigger but sequence is active, ignoring");
+                return;
+            }
+            
             PlayerInJunction = false;
             OnPlayerExitJunction();
         }
@@ -95,6 +107,27 @@ public class JunctionTrigger : MonoBehaviour
     private void OnPlayerEnterJunction()
     {
         Debug.Log($"[JunctionTrigger] Player entered junction {junctionIndex}");
+        
+        // Kamera geçişi ile başla
+        StartCoroutine(JunctionEnterSequence());
+    }
+    
+    private System.Collections.IEnumerator JunctionEnterSequence()
+    {
+        isInSequence = true;
+        
+        // Kamera geçişi
+        if (triggerCamera != null && CameraManager.Instance != null)
+        {
+            Debug.Log($"[JunctionTrigger] Transitioning to junction camera...");
+            bool cameraTransitionComplete = false;
+            CameraManager.Instance.TransitionToCamera(triggerCamera, cameraTransitionDuration, () =>
+            {
+                cameraTransitionComplete = true;
+            });
+            yield return new UnityEngine.WaitUntil(() => cameraTransitionComplete);
+            Debug.Log($"[JunctionTrigger] Camera transition complete");
+        }
         
         // Show Ufyo
         if (showUfyoOnEnter && ufyoVisual != null)
@@ -134,6 +167,8 @@ public class JunctionTrigger : MonoBehaviour
                 UIManager.Instance.SetCompassEnabled(true);
             }
         }
+        
+        // NOT: isInSequence burada false yapmıyoruz çünkü compass tıklanana kadar devam ediyor
     }
     
     private void OnPlayerExitJunction()
@@ -157,10 +192,26 @@ public class JunctionTrigger : MonoBehaviour
     #region Compass Logic
     private void OnCompassClicked()
     {
-        // Only respond if player is in this junction
-        if (!PlayerInJunction || IsResolved || compassUsed) return;
+        Debug.Log($"[JunctionTrigger] Compass clicked! PlayerInJunction={PlayerInJunction}, IsResolved={IsResolved}, compassUsed={compassUsed}");
         
-        Debug.Log($"[JunctionTrigger] Compass clicked at junction {junctionIndex}");
+        // Only respond if player is in this junction
+        if (!PlayerInJunction)
+        {
+            Debug.LogWarning("[JunctionTrigger] Compass ignored - player not in junction");
+            return;
+        }
+        if (IsResolved)
+        {
+            Debug.LogWarning("[JunctionTrigger] Compass ignored - already resolved");
+            return;
+        }
+        if (compassUsed)
+        {
+            Debug.LogWarning("[JunctionTrigger] Compass ignored - already used");
+            return;
+        }
+        
+        Debug.Log($"[JunctionTrigger] Compass accepted at junction {junctionIndex}");
         
         compassUsed = true;
         
@@ -288,11 +339,27 @@ public class JunctionTrigger : MonoBehaviour
         // Disable this junction
         isActive = false;
         
+        // Oyuncu kamerasına geri dön
+        if (triggerCamera != null && CameraManager.Instance != null)
+        {
+            Debug.Log("[JunctionTrigger] Returning to player camera...");
+            bool cameraReturnComplete = false;
+            CameraManager.Instance.TransitionToPlayerCamera(cameraTransitionDuration, () =>
+            {
+                cameraReturnComplete = true;
+            });
+            yield return new UnityEngine.WaitUntil(() => cameraReturnComplete);
+            Debug.Log("[JunctionTrigger] Returned to player camera");
+        }
+        
         // Oyun moduna dön - oyuncu artık hareket edebilir
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ReturnToGameMode();
         }
+        
+        // Sequence bitti
+        isInSequence = false;
     }
     
     private void ShowPathRevealObjects()
@@ -379,6 +446,7 @@ public class JunctionTrigger : MonoBehaviour
         compassUsed = false;
         isActive = true;
         PlayerInJunction = false;
+        isInSequence = false;
         
         HideUfyo();
         HidePathRevealObjects();

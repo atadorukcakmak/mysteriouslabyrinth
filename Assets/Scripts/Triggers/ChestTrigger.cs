@@ -13,6 +13,10 @@ public class ChestTrigger : MonoBehaviour, IInteractable
     [SerializeField] private bool isLocked = true;
     [SerializeField] private bool requireInteraction = true; // Must press E to interact
     
+    [Header("Camera")]
+    [SerializeField] private Camera triggerCamera; // Bu trigger için özel kamera
+    [SerializeField] private float cameraTransitionDuration = 1.0f;
+    
     [Header("Book Reward")]
     [SerializeField] private BookData bookReward;
     [SerializeField] private int bookOrderOverride = -1; // Use chapter data if -1
@@ -176,16 +180,40 @@ public class ChestTrigger : MonoBehaviour, IInteractable
     {
         if (IsOpened || IsUnlocking) return;
         
+        // Önce kameraya geçiş yap, sonra diyalog/soru göster
+        StartCoroutine(TryUnlockSequence());
+    }
+    
+    private IEnumerator TryUnlockSequence()
+    {
+        // Kamera geçişi
+        if (triggerCamera != null && CameraManager.Instance != null)
+        {
+            Debug.Log("[ChestTrigger] Transitioning to chest camera...");
+            bool cameraTransitionComplete = false;
+            CameraManager.Instance.TransitionToCamera(triggerCamera, cameraTransitionDuration, () =>
+            {
+                cameraTransitionComplete = true;
+            });
+            yield return new WaitUntil(() => cameraTransitionComplete);
+            Debug.Log("[ChestTrigger] Camera transition complete");
+        }
+        
         if (isLocked)
         {
-            string lockedDialogue = customQuestion.approachDialogue;
+            string lockedDialogue = customQuestion != null ? customQuestion.approachDialogue : null;
+            
             // Show locked dialogue, then ask question when dialogue finishes
             if (!string.IsNullOrEmpty(lockedDialogue) && UIManager.Instance != null)
             {
+                bool dialogueComplete = false;
                 UIManager.Instance.ShowDialogueWithCallback(lockedDialogue, () =>
                 {
-                    AskChestQuestion();
+                    dialogueComplete = true;
                 });
+                yield return new WaitUntil(() => dialogueComplete);
+                
+                AskChestQuestion();
             }
             else
             {
@@ -339,13 +367,26 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         // 8. Continue'a basıldı - debug log
         Debug.Log("elhamdulillah");
         
-        // 9. Oyun moduna dön
+        // 9. Oyuncu kamerasına geri dön
+        if (triggerCamera != null && CameraManager.Instance != null)
+        {
+            Debug.Log("[ChestTrigger] Returning to player camera...");
+            bool cameraReturnComplete = false;
+            CameraManager.Instance.TransitionToPlayerCamera(cameraTransitionDuration, () =>
+            {
+                cameraReturnComplete = true;
+            });
+            yield return new WaitUntil(() => cameraReturnComplete);
+            Debug.Log("[ChestTrigger] Returned to player camera");
+        }
+        
+        // 10. Oyun moduna dön
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ReturnToGameMode();
         }
         
-        // 10. Bölüm tamamlama kontrolü
+        // 11. Bölüm tamamlama kontrolü
         CheckChapterCompletion();
     }
     

@@ -15,7 +15,7 @@ MonoBehaviour:
   bookName: Torah
   bookOrder: 1
   bookDescription: The first holy book
-  bookIcon: {fileID: 0}
+  bookIcon: {fileID: 21300000, guid: 75167fcc050d31b489556fe5f599040c, type: 3}
   bookColor: {r: 0.21069163, g: 0.7438415, b: 1, a: 1}
   isGlowing: 0
   requiredChapter: 1

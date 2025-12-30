@@ -328,6 +328,30 @@ public class PlayerController : MonoBehaviour
             cameraHolder.localRotation = Quaternion.identity;
         }
     }
+    
+    /// <summary>
+    /// Bakış kontrolünü açar/kapatır.
+    /// </summary>
+    public void SetLookEnabled(bool enabled)
+    {
+        CanLook = enabled;
+    }
+    
+    /// <summary>
+    /// Hareket kontrolünü açar/kapatır.
+    /// </summary>
+    public void SetMovementEnabled(bool enabled)
+    {
+        CanMove = enabled;
+    }
+    
+    /// <summary>
+    /// CameraHolder Transform'unu döndürür.
+    /// </summary>
+    public Transform GetCameraHolder()
+    {
+        return cameraHolder;
+    }
     #endregion
 }
 

@@ -106,14 +106,25 @@ public class Inventory : MonoBehaviour
     #region UI
     private void UpdateInventoryUI()
     {
-        if (UIManager.Instance == null || allBooks == null) return;
+        if (UIManager.Instance == null || allBooks == null) 
+        {
+            Debug.LogWarning($"[Inventory] UpdateInventoryUI skipped - UIManager: {UIManager.Instance != null}, allBooks: {allBooks != null}");
+            return;
+        }
+        
+        Debug.Log($"[Inventory] UpdateInventoryUI called. CollectedBooks count: {CollectedBooks.Count}");
         
         for (int i = 0; i < allBooks.Length; i++)
         {
             if (allBooks[i] != null)
             {
                 bool collected = HasBook(allBooks[i]);
+                Debug.Log($"[Inventory] Slot {i}: Book '{allBooks[i].bookName}', collected: {collected}, hasIcon: {allBooks[i].bookIcon != null}");
                 UIManager.Instance.UpdateBookSlot(i, allBooks[i], collected);
+            }
+            else
+            {
+                Debug.LogWarning($"[Inventory] Slot {i}: allBooks[{i}] is null!");
             }
         }
     }

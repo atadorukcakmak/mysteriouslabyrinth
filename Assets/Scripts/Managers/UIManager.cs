@@ -21,6 +21,9 @@ public class UIManager : MonoBehaviour
             return;
         }
         Instance = this;
+        
+        // Kitap slot'larını en başta boş olarak başlat (diğer script'lerden önce)
+        InitializeBookSlots();
     }
     #endregion
     
@@ -44,6 +47,7 @@ public class UIManager : MonoBehaviour
     [Header("HUD Elements")]
     [SerializeField] private Image[] heartImages;
     [SerializeField] private Image[] bookSlots;
+    [SerializeField] private Sprite emptyBookSlotSprite; // Boş slot için gri placeholder sprite
     [SerializeField] private Button compassButton;
     
     [Header("Dialogue Elements")]
@@ -307,6 +311,49 @@ public class UIManager : MonoBehaviour
     }
     
     /// <summary>
+    /// Tüm kitap slot'larını boş/gri olarak başlat.
+    /// Oyun başlangıcında çağrılmalı.
+    /// </summary>
+    public void InitializeBookSlots()
+    {
+        if (bookSlots == null)
+        {
+            Debug.LogWarning("[UIManager] bookSlots array is null!");
+            return;
+        }
+        
+        Debug.Log($"[UIManager] Initializing {bookSlots.Length} book slots. EmptySprite assigned: {emptyBookSlotSprite != null}" + 
+                  (emptyBookSlotSprite != null ? $" (name: {emptyBookSlotSprite.name})" : ""));
+        
+        for (int i = 0; i < bookSlots.Length; i++)
+        {
+            if (bookSlots[i] != null)
+            {
+                // Önce mevcut sprite'ı temizle
+                string previousSprite = bookSlots[i].sprite != null ? bookSlots[i].sprite.name : "null";
+                
+                // Placeholder sprite varsa onu kullan, yoksa gri renk
+                if (emptyBookSlotSprite != null)
+                {
+                    bookSlots[i].sprite = emptyBookSlotSprite;
+                    bookSlots[i].color = Color.white;
+                    Debug.Log($"[UIManager] Slot {i}: Changed from '{previousSprite}' to '{emptyBookSlotSprite.name}'");
+                }
+                else
+                {
+                    bookSlots[i].sprite = null;
+                    bookSlots[i].color = new Color(0.3f, 0.3f, 0.3f, 0.5f); // Boş slot - gri
+                    Debug.Log($"[UIManager] Slot {i}: Changed from '{previousSprite}' to null (gray)");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[UIManager] Slot {i} is null!");
+            }
+        }
+    }
+    
+    /// <summary>
     /// Updates a book slot in the inventory display.
     /// </summary>
     public void UpdateBookSlot(int slotIndex, BookData book, bool collected)
@@ -316,14 +363,39 @@ public class UIManager : MonoBehaviour
         Image slot = bookSlots[slotIndex];
         if (slot == null) return;
         
+        Debug.Log($"[UIManager] UpdateBookSlot called - Slot {slotIndex}, collected: {collected}, emptySprite: {emptyBookSlotSprite != null}");
+        
         if (collected && book != null)
         {
-            slot.sprite = book.bookIcon;
-            slot.color = book.isGlowing ? book.bookColor : new Color(0.7f, 0.7f, 0.7f); // Matte effect
+            if (book.bookIcon != null)
+            {
+                slot.sprite = book.bookIcon;
+                slot.color = Color.white; // Tam görünür
+                Debug.Log($"[UIManager] Slot {slotIndex}: SET to collected book '{book.bookName}' icon");
+            }
+            else
+            {
+                Debug.LogWarning($"[UIManager] Slot {slotIndex}: Book '{book.bookName}' has no icon assigned!");
+                // İkon yoksa placeholder kullan ama farklı renkte göster
+                slot.sprite = emptyBookSlotSprite;
+                slot.color = new Color(0.5f, 1f, 0.5f, 1f); // Yeşilimsi - toplandı ama ikon yok
+            }
         }
         else
         {
-            slot.color = new Color(0.3f, 0.3f, 0.3f, 0.5f); // Empty slot
+            // Placeholder sprite varsa onu kullan
+            if (emptyBookSlotSprite != null)
+            {
+                slot.sprite = emptyBookSlotSprite;
+                slot.color = Color.white;
+                Debug.Log($"[UIManager] Slot {slotIndex}: SET to empty placeholder (bookLocked)");
+            }
+            else
+            {
+                slot.sprite = null;
+                slot.color = new Color(0.3f, 0.3f, 0.3f, 0.5f); // Empty slot - gri
+                Debug.Log($"[UIManager] Slot {slotIndex}: SET to null (gray) - no empty sprite");
+            }
         }
     }
     

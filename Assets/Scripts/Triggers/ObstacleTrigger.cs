@@ -14,6 +14,10 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     [SerializeField] private bool isActive = true;
     [SerializeField] private bool requireInteraction = false; // If true, player must press E; if false, auto-trigger
     
+    [Header("Camera")]
+    [SerializeField] private Camera triggerCamera; // Bu trigger için özel kamera
+    [SerializeField] private float cameraTransitionDuration = 1.0f;
+    
     [Header("Question")]
     [SerializeField] private QuestionData customQuestion; // Override chapter question
     
@@ -73,7 +77,24 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     #region Trigger Detection
     private void OnTriggerEnter(Collider other)
     {
-        if (!isActive || IsCleared || IsProcessing) return;
+        Debug.Log($"[ObstacleTrigger] OnTriggerEnter called on {gameObject.name}, tag: {other.tag}");
+        Debug.Log($"[ObstacleTrigger] State: isActive={isActive}, IsCleared={IsCleared}, IsProcessing={IsProcessing}");
+        
+        if (!isActive)
+        {
+            Debug.LogWarning($"[ObstacleTrigger] Ignored - not active");
+            return;
+        }
+        if (IsCleared)
+        {
+            Debug.LogWarning($"[ObstacleTrigger] Ignored - already cleared");
+            return;
+        }
+        if (IsProcessing)
+        {
+            Debug.LogWarning($"[ObstacleTrigger] Ignored - already processing");
+            return;
+        }
         
         if (other.CompareTag("Player"))
         {
@@ -81,6 +102,10 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             Debug.Log($"[ObstacleTrigger] Player entered {obstacleType} trigger: {gameObject.name}");
             
             StartDialogueThenQuestion();
+        }
+        else
+        {
+            Debug.Log($"[ObstacleTrigger] Non-player object entered: {other.gameObject.name}");
         }
     }
     
@@ -125,22 +150,51 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         if (IsProcessing || IsCleared) return;
         
         IsProcessing = true;
+        
+        // Kamera geçişi ile başla
+        StartCoroutine(DialogueQuestionSequence());
+    }
+    
+    private System.Collections.IEnumerator DialogueQuestionSequence()
+    {
+        Debug.Log($"[ObstacleTrigger] DialogueQuestionSequence started");
+        
+        // Kamera geçişi
+        if (triggerCamera != null && CameraManager.Instance != null)
+        {
+            Debug.Log($"[ObstacleTrigger] Transitioning to {obstacleType} camera...");
+            bool cameraTransitionComplete = false;
+            CameraManager.Instance.TransitionToCamera(triggerCamera, cameraTransitionDuration, () =>
+            {
+                cameraTransitionComplete = true;
+            });
+            yield return new WaitUntil(() => cameraTransitionComplete);
+            Debug.Log($"[ObstacleTrigger] Camera transition complete");
+        }
+        else
+        {
+            Debug.Log($"[ObstacleTrigger] No camera or CameraManager - triggerCamera: {(triggerCamera != null ? triggerCamera.name : "NULL")}, CameraManager: {(CameraManager.Instance != null ? "EXISTS" : "NULL")}");
+        }
 
-        string approachDialogue = customQuestion.approachDialogue;
+        string approachDialogue = customQuestion != null ? customQuestion.approachDialogue : null;
+        Debug.Log($"[ObstacleTrigger] Approach dialogue: {(string.IsNullOrEmpty(approachDialogue) ? "EMPTY" : approachDialogue)}");
 
         // Diyalog varsa önce onu göster
         if (!string.IsNullOrEmpty(approachDialogue) && UIManager.Instance != null)
         {
+            Debug.Log($"[ObstacleTrigger] Showing dialogue...");
+            bool dialogueComplete = false;
             UIManager.Instance.ShowDialogueWithCallback(approachDialogue, () =>
             {
-                // Diyalog bittikten sonra soruyu göster
-                ShowQuestion();
+                dialogueComplete = true;
             });
+            yield return new WaitUntil(() => dialogueComplete);
+            Debug.Log($"[ObstacleTrigger] Dialogue complete");
         }
-        else
-        {
-            ShowQuestion();             
-        }
+        
+        // Soruyu göster
+        Debug.Log($"[ObstacleTrigger] Calling ShowQuestion...");
+        ShowQuestion();
     }
     
     private void ShowQuestion()
@@ -231,7 +285,20 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             yield return new WaitUntil(() => dialogueClosed);
         }
         
-        // Oyun moduna dön - success diyaloğu bitti
+        // Oyuncu kamerasına geri dön
+        if (triggerCamera != null && CameraManager.Instance != null)
+        {
+            Debug.Log($"[ObstacleTrigger] Returning to player camera...");
+            bool cameraReturnComplete = false;
+            CameraManager.Instance.TransitionToPlayerCamera(cameraTransitionDuration, () =>
+            {
+                cameraReturnComplete = true;
+            });
+            yield return new WaitUntil(() => cameraReturnComplete);
+            Debug.Log($"[ObstacleTrigger] Returned to player camera");
+        }
+        
+        // Oyun moduna dön
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ReturnToGameMode();
