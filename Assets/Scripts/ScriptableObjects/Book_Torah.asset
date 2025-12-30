@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d2d7694783e6254eb5cc0adb053ecc4, type: 3}
+  m_Name: Book_Torah
+  m_EditorClassIdentifier: Assembly-CSharp::BookData
+  bookName: Torah
+  bookOrder: 1
+  bookDescription: The first holy book
+  bookIcon: {fileID: 0}
+  bookColor: {r: 0.21069163, g: 0.7438415, b: 1, a: 1}
+  isGlowing: 0
+  requiredChapter: 1

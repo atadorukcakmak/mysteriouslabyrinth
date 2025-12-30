@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4419c76aa8b1364789183609f0f0e6b, type: 3}
+  m_Name: Chapter1_Data
+  m_EditorClassIdentifier: Assembly-CSharp::ChapterData
+  chapterNumber: 1
+  chapterName: Chapter 1 - The Besher Tree
+  chapterDescription: 
+  gateQuestion: {fileID: 11400000, guid: 34a5798d1a6184340b0e144c865400c1, type: 2}
+  mainObstacleQuestion: {fileID: 11400000, guid: 0a6cb268cb4ad6c44855dc6b57ebedd1, type: 2}
+  chestQuestion: {fileID: 11400000, guid: b187b5add5aec904ebd46824841fd8ed, type: 2}
+  junctionQuestions:
+  - {fileID: 11400000, guid: 695a96d0e49b5e247aea7c253c3606ca, type: 2}
+  bookReward: {fileID: 11400000, guid: 8749dec4a7b143b4b8630d9868a8786e, type: 2}
+  introDialogue: Welcome to the Mysterious Labyrinth. Find the sacred Torah!
+  gateDialogue: 
+  obstacleDialogue: 
+  chestDialogue: 
+  completionDialogue: 
+  sceneName: SampleScene
