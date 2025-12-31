@@ -201,13 +201,14 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         
         if (isLocked)
         {
-            string lockedDialogue = customQuestion != null ? customQuestion.approachDialogue : null;
+            // Get approach dialogue messages (supports two-part dialogue)
+            string[] lockedMessages = customQuestion != null ? customQuestion.GetApproachDialogueMessages() : null;
             
             // Show locked dialogue, then ask question when dialogue finishes
-            if (!string.IsNullOrEmpty(lockedDialogue) && UIManager.Instance != null)
+            if (lockedMessages != null && lockedMessages.Length > 0 && UIManager.Instance != null)
             {
                 bool dialogueComplete = false;
-                UIManager.Instance.ShowDialogueWithCallback(lockedDialogue, () =>
+                UIManager.Instance.ShowDialogueSequence(lockedMessages, () =>
                 {
                     dialogueComplete = true;
                 });
@@ -351,12 +352,13 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         
         // 7. Success diyaloğunu göster
         Debug.Log("[ChestTrigger] Step 4: Showing success dialogue");
-        string successDialogue = customQuestion != null ? customQuestion.successDialogue : null;
+        // Get success dialogue messages (supports two-part dialogue)
+        string[] successMessages = customQuestion != null ? customQuestion.GetSuccessDialogueMessages() : null;
         
-        if (!string.IsNullOrEmpty(successDialogue) && UIManager.Instance != null)
+        if (successMessages != null && successMessages.Length > 0 && UIManager.Instance != null)
         {
             bool dialogueClosed = false;
-            UIManager.Instance.ShowDialogueWithCallback(successDialogue, () =>
+            UIManager.Instance.ShowDialogueSequence(successMessages, () =>
             {
                 dialogueClosed = true;
             });
@@ -459,7 +461,7 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         
         // Kitabı pozisyonla ve aktif et
         bookVisual.transform.position = startPos;
-        bookVisual.transform.localScale = Vector3.one;
+        //bookVisual.transform.localScale = Vector3.one;
         bookVisual.SetActive(true);
         
         // Tüm child'ları da aktif et

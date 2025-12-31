@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Junction_Chapter4
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogueMessages: []
+  successDialogueMessages: []
+  approachDialogue: "Tam 23 y\u0131l boyunca vahiy geldi\r\nHz. Cebrail 23 y\u0131l
+    boyunca \r\nKur\u2019an-\u0131 Kerim\u2019in ayetlerini Efendimize iletti.\r\nRabbimiz,
+    \u2018\u2018Onu, Kur\u2019an-\u0131 Kerim\u2019i, tertil \xFCzere okuyun\u2019dedi "
+  successDialogue: 
+  questionText: "Sahi \u2018\u2018Tertil\u2019\u2019 ne demekti?"
+  answers:
+  - "Tefekk\xFCr ederek, d\xFC\u015F\xFCnerek okumak."
+  - "H\u0131zl\u0131 okumak"
+  - "Makaml\u0131 okumak"
+  correctAnswerIndex: 0
+  questionType: 2
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

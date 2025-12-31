@@ -6,9 +6,22 @@
 [CreateAssetMenu(fileName = "New Question", menuName = "Mysterious Labyrinth/Question Data")]
 public class QuestionData : ScriptableObject
 {
-    [Header("Dialogue")]
-    [TextArea(2, 4)] public string approachDialogue;
-    [TextArea(2, 4)] public string successDialogue;
+    [Header("Dialogue - Approach")]
+    [Tooltip("Approach dialogue messages array. Each element is shown sequentially (Continue to next).")]
+    [TextArea(2, 4)]
+    public string[] approachDialogueMessages;
+    
+    [Header("Dialogue - Success")]
+    [Tooltip("Success dialogue messages array. Each element is shown sequentially (Continue to next).")]
+    [TextArea(2, 4)]
+    public string[] successDialogueMessages;
+    
+    [Header("Dialogue - Legacy (Deprecated)")]
+    [Tooltip("Legacy single dialogue fields (for backward compatibility). Use approachDialogueMessages instead.")]
+    [TextArea(2, 4)]
+    public string approachDialogue;
+    [TextArea(2, 4)]
+    public string successDialogue;
 
     [Header("Question Settings")]
     [TextArea(2, 4)]
@@ -48,6 +61,70 @@ public class QuestionData : ScriptableObject
             return answers[correctAnswerIndex];
         }
         return string.Empty;
+    }
+    
+    /// <summary>
+    /// Gets approach dialogue messages array. Returns array if set, otherwise falls back to legacy approachDialogue.
+    /// </summary>
+    public string[] GetApproachDialogueMessages()
+    {
+        // Use new array system if available
+        if (approachDialogueMessages != null && approachDialogueMessages.Length > 0)
+        {
+            // Filter out empty strings
+            System.Collections.Generic.List<string> validMessages = new System.Collections.Generic.List<string>();
+            foreach (string msg in approachDialogueMessages)
+            {
+                if (!string.IsNullOrEmpty(msg))
+                {
+                    validMessages.Add(msg);
+                }
+            }
+            if (validMessages.Count > 0)
+            {
+                return validMessages.ToArray();
+            }
+        }
+        
+        // Fallback to legacy single dialogue for backward compatibility
+        if (!string.IsNullOrEmpty(approachDialogue))
+        {
+            return new string[] { approachDialogue };
+        }
+        
+        return null;
+    }
+    
+    /// <summary>
+    /// Gets success dialogue messages array. Returns array if set, otherwise falls back to legacy successDialogue.
+    /// </summary>
+    public string[] GetSuccessDialogueMessages()
+    {
+        // Use new array system if available
+        if (successDialogueMessages != null && successDialogueMessages.Length > 0)
+        {
+            // Filter out empty strings
+            System.Collections.Generic.List<string> validMessages = new System.Collections.Generic.List<string>();
+            foreach (string msg in successDialogueMessages)
+            {
+                if (!string.IsNullOrEmpty(msg))
+                {
+                    validMessages.Add(msg);
+                }
+            }
+            if (validMessages.Count > 0)
+            {
+                return validMessages.ToArray();
+            }
+        }
+        
+        // Fallback to legacy single dialogue for backward compatibility
+        if (!string.IsNullOrEmpty(successDialogue))
+        {
+            return new string[] { successDialogue };
+        }
+        
+        return null;
     }
 }
 

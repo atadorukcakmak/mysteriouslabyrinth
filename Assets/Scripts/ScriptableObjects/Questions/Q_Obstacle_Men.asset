@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Obstacle_Men
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogueMessages:
+  - "Yard\u0131m alma vakti geldi.\r\nBu engeli de a\u015Fmak i\xE7in, do\u011Fru
+    cevab\u0131 vermeli."
+  - "Rabbimiz, ilahi kitaplardan \xF6nce, baz\u0131 peygamberlere de sahifeler vermi\u015F.\r\nHz.
+    Adem (a.s.), Hz. \u0130dris (a.s.), Hz. \u0130brahim (a.s.) da kendilerine sayfalar
+    verilen peygamberlerdenmi\u015F."
+  successDialogueMessages:
+  - "Harikas\u0131n!\r\nBu engeli de a\u015Ft\u0131n.\r\n\u015Eimdi, sakl\u0131 sand\u0131\u011F\u0131
+    bulup, \r\nG\xF6revi tamamlamal\u0131s\u0131n."
+  approachDialogue: 
+  successDialogue: 
+  questionText: "Bir peygambere daha sahife g\xF6nderilmi\u015F.\r\nAcaba hangi peygambermi\u015F? "
+  answers:
+  - 'Hz. Nuh (a.s.)  '
+  - "Hz. \u0130smail (a.s.) "
+  - "Hz. \u015Eit (a.s.)  "
+  correctAnswerIndex: 2
+  questionType: 1
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

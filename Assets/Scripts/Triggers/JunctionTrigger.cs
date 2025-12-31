@@ -135,14 +135,15 @@ public class JunctionTrigger : MonoBehaviour
             ShowUfyo();
         }
 
-        string junctionDialogue = customQuestion != null ? customQuestion.approachDialogue : null;
+        // Get approach dialogue messages (supports two-part dialogue)
+        string[] junctionMessages = customQuestion != null ? customQuestion.GetApproachDialogueMessages() : null;
 
         // Show Ufyo dialogue, then enable compass on Continue (stay in UI mode)
-        if (!string.IsNullOrEmpty(junctionDialogue) && UIManager.Instance != null)
+        if (junctionMessages != null && junctionMessages.Length > 0 && UIManager.Instance != null)
         {
-            Debug.Log($"[JunctionTrigger] Showing Ufyo dialogue: {junctionDialogue}");
+            Debug.Log($"[JunctionTrigger] Showing Ufyo dialogue ({junctionMessages.Length} part(s))");
             // UI mode'da kal - oyuncu hareket edemez, cursor açık
-            UIManager.Instance.ShowDialogueWithCallbackStayInUI(junctionDialogue, () =>
+            UIManager.Instance.ShowDialogueSequenceStayInUI(junctionMessages, () =>
             {
                 // Continue'a basılınca compass butonunu aktif et (hala UI mode'da)
                 Debug.Log("[JunctionTrigger] Dialogue complete, enabling compass button (staying in UI mode)");
@@ -303,13 +304,14 @@ public class JunctionTrigger : MonoBehaviour
         // Bir frame bekle - soru paneli kapansın
         yield return null;
 
-        string successDialogue = customQuestion != null ? customQuestion.successDialogue : null;
+        // Get success dialogue messages (supports two-part dialogue)
+        string[] successMessages = customQuestion != null ? customQuestion.GetSuccessDialogueMessages() : null;
 
         // Show success dialogue and wait for Continue (hala UI mode'dayız)
-        if (!string.IsNullOrEmpty(successDialogue) && UIManager.Instance != null)
+        if (successMessages != null && successMessages.Length > 0 && UIManager.Instance != null)
         {
             bool dialogueClosed = false;
-            UIManager.Instance.ShowDialogueWithCallback(successDialogue, () =>
+            UIManager.Instance.ShowDialogueSequence(successMessages, () =>
             {
                 dialogueClosed = true;
             });

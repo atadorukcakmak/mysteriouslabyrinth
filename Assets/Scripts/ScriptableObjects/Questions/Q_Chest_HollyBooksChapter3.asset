@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Chest_HollyBooksChapter3
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogueMessages: []
+  successDialogueMessages:
+  - "3. kitap, Hz. \u0130sa\u2019ya (a.s.) verilmi\u015F olan \u0130ncil\u2019di.\r\nHz.
+    \u0130sa (a.s.), Kud\xFCs\u2019te d\xFCnyaya gelmi\u015Fti.\r\n\xD6nceki kitaplar\u0131
+    tahrif edip de\u011Fi\u015Ftirdikleri i\xE7in \r\nYanl\u0131\u015F inan\xE7lara
+    kap\u0131lanlara,\r\nGer\xE7ekleri bildirmek i\xE7in g\xF6nderilmi\u015F,\r\nPeygamber
+    olarak se\xE7ilmi\u015Fti."
+  - "Di\u011Fer kitaplarda oldu\u011Fu gibi,\r\n\u0130ncil\u2019de de,\r\nRabbimizin
+    birli\u011Fi, \r\nO\u2019na hi\xE7bir \u015Feyi ortak ko\u015Fmamak gerekti\u011Fi,\r\nRabbimizin
+    insanl\u0131\u011F\u0131 ebedi mutlulu\u011Fa ula\u015Ft\u0131racak ayetleri,\r\nVe,
+    gelecek olan son peygamberin,\r\nM\xFCjdesi verilmi\u015Fti."
+  - "Rabbimiz, Hz. \u0130sa\u2019y\u0131 (a.s.) mucizelerle destekledi.\r\nDaha kundakta
+    iken\r\n\u2018\u2019Allah beni peygamber olarak se\xE7ti ve kitap verdi.\u2019\u2019dedi.\r\nRabbimizin
+    izni ile,\r\n\xDCmitsiz hastalar\u0131 iyile\u015Ftirirdi. \r\n\xC7amurdan yap\u0131lm\u0131\u015F
+    ku\u015Flara \u2018Allah\u2019\u0131n ad\u0131 ile\u2019 der, \xFCflerdi. \r\nKu\u015Flar
+    kanat \xE7\u0131rp\u0131p g\xF6klere do\u011Fru y\xFCkselirdi."
+  - "T\xFCm bu mucizelere ra\u011Fmen, \r\n\u0130nsanlar\u0131n baz\u0131lar\u0131,\r\nOnun
+    peygamberli\u011Fini ve yeni kitab\u0131 ink\xE2r etti.\r\nOnu, ortadan kald\u0131rmaya
+    kastetti.\r\nRabbimiz onlara f\u0131rsat vermedi ve \r\nHz. \u0130sa\u2019y\u0131
+    (a.s.) g\xF6ky\xFCz\xFCne y\xFCkseltti.\r\nBaz\u0131lar\u0131  onu \u2018Rab\u2019
+    ilan etti.\r\nBaz\u0131lar\u0131 ise Hz. \u0130sa\u2019n\u0131n (a.s.)\xF6\u011Fretilerine
+    sad\u0131k kald\u0131."
+  - "Rabbimize iman edip, \r\nGelecek olan son el\xE7iyi beklemeye ba\u015Flad\u0131.\r\nHz.
+    \u0130sa\u2019dan (a.s.) sonra insanlar bu yeni kitab\u0131 da de\u011Fi\u015Ftirdi.\r\nD\xFCnyada
+    yine d\xFCzen bozuldu.\r\n\u0130nsanl\u0131k, gelecek olan son kitap \r\nVe son
+    el\xE7iye muhta\xE7t\u0131.\r\nAncak bu sefer her \u015Fey,\r\n\xC7ok farkl\u0131
+    olacakt\u0131."
+  approachDialogue: "\u0130\u015Fte yine ba\u015Fard\u0131n!\r\n3. sand\u0131\u011Fa
+    da ula\u015Ft\u0131n.\r\nSand\u0131\u011F\u0131 a\xE7mak i\xE7in soruyu do\u011Fru
+    cevaplamal\u0131s\u0131n.\r\nUnutma! \r\nSand\u0131\u011F\u0131n \u015Fifresi,
+    \r\nDo\u011Fru cevapta gizli."
+  successDialogue: 
+  questionText: "Nas Suresi Kur\u2019an-\u0131 Kerim\u2019in ka\xE7\u0131nc\u0131
+    suresidir?"
+  answers:
+  - '114  '
+  - '101  '
+  - 113
+  correctAnswerIndex: 0
+  questionType: 3
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

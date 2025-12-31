@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
@@ -23,6 +24,15 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         
         Initialize();
+        
+        // Subscribe to scene loaded event
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+    
+    private void OnDestroy()
+    {
+        // Unsubscribe from scene loaded event
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
     #endregion
     
@@ -53,8 +63,9 @@ public class GameManager : MonoBehaviour
     
     #region Private Fields
     private int totalChapters = 4;
+    private bool hasCheckedSceneOnLoad = false;
     #endregion
-    
+
     #region Initialization
     private void Initialize()
     {
@@ -66,6 +77,73 @@ public class GameManager : MonoBehaviour
         {
             totalChapters = chapters.Length;
         }
+
+        Debug.Log("[GameManager] Initialized.");
+    }
+    
+    /// <summary>
+    /// Called when a scene is loaded. Automatically starts chapter if it's a chapter scene.
+    /// </summary>
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log($"[GameManager] OnSceneLoaded called - Scene: {scene.name}, State: {CurrentState}");
+        hasCheckedSceneOnLoad = true;
+        CheckAndStartChapter(scene.name);
+    }
+    
+    /// <summary>
+    /// Called on Start. Handles case when scene is already loaded (e.g., playing directly in editor).
+    /// </summary>
+    private void Start()
+    {
+        // If OnSceneLoaded didn't fire (e.g., playing directly in editor), check here
+        if (!hasCheckedSceneOnLoad)
+        {
+            Debug.Log("[GameManager] Start() called - OnSceneLoaded didn't fire, checking scene manually");
+            string currentSceneName = SceneManager.GetActiveScene().name;
+            CheckAndStartChapter(currentSceneName);
+        }
+    }
+    
+    /// <summary>
+    /// Checks if the scene is a chapter scene and starts it if needed.
+    /// </summary>
+    private void CheckAndStartChapter(string sceneName)
+    {
+        // Don't auto-start if it's the MainMenu scene
+        if (sceneName == "MainMenu")
+        {
+            Debug.Log("[GameManager] MainMenu scene detected, skipping auto-start");
+            return;
+        }
+        
+        // Check if current scene matches a chapter scene
+        ChapterData data = CurrentChapterData;
+        Debug.Log($"[GameManager] Checking chapter data - Data: {(data != null ? "EXISTS" : "NULL")}, SceneName: {(data != null ? data.sceneName : "N/A")}, CurrentScene: {sceneName}");
+        
+        if (data != null && !string.IsNullOrEmpty(data.sceneName) && data.sceneName == sceneName)
+        {
+            Debug.Log($"[GameManager] Scene matches chapter scene! Auto-starting Chapter {CurrentChapter}");
+            // Wait a frame to ensure all managers are initialized
+            StartCoroutine(DelayedChapterStart());
+        }
+        else
+        {
+            Debug.Log("[GameManager] Scene does not match any chapter scene, or chapter data is missing");
+        }
+    }
+    
+    /// <summary>
+    /// Delays chapter start by one frame to ensure all managers are ready.
+    /// </summary>
+    private IEnumerator DelayedChapterStart()
+    {
+        yield return null; // Wait one frame
+        
+        // Reset the flag for next scene load
+        hasCheckedSceneOnLoad = false;
+        
+        StartChapter(CurrentChapter);
     }
     #endregion
     
@@ -135,7 +213,7 @@ public class GameManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Starts a specific chapter.
+    /// Starts a specific chapter. If intro dialogue exists, shows it before starting the game.
     /// </summary>
     public void StartChapter(int chapterNumber)
     {
@@ -147,6 +225,56 @@ public class GameManager : MonoBehaviour
         
         CurrentChapter = chapterNumber;
         OnChapterChanged?.Invoke(CurrentChapter);
+        
+        // Start chapter with intro dialogue handling
+        StartCoroutine(StartChapterCoroutine(chapterNumber));
+    }
+    
+    /// <summary>
+    /// Coroutine that handles chapter start with intro dialogue.
+    /// </summary>
+    private IEnumerator StartChapterCoroutine(int chapterNumber)
+    {
+        ChapterData data = CurrentChapterData;
+        
+        Debug.Log($"[GameManager] StartChapterCoroutine for Chapter {chapterNumber}");
+        Debug.Log($"[GameManager] ChapterData: {(data != null ? "EXISTS" : "NULL")}");
+        Debug.Log($"[GameManager] IntroDialogue: {(data != null && !string.IsNullOrEmpty(data.introDialogue) ? data.introDialogue : "EMPTY")}");
+        Debug.Log($"[GameManager] UIManager.Instance: {(UIManager.Instance != null ? "EXISTS" : "NULL")}");
+        
+        // If the chapter has an intro dialogue, show it first and wait for it to complete
+        string[] introMessages = data?.GetIntroDialogueMessages();
+        if (introMessages != null && introMessages.Length > 0 && UIManager.Instance != null)
+        {
+            Debug.Log($"[GameManager] Showing intro dialogue for Chapter {chapterNumber} ({introMessages.Length} part(s))");
+            
+            // Set state to Dialogue while showing intro
+            SetGameState(GameState.Dialogue);
+            
+            // Unlock cursor for dialogue interaction
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            
+            // Show dialogue sequence and wait for completion
+            bool dialogueComplete = false;
+            UIManager.Instance.ShowDialogueSequence(introMessages, () =>
+            {
+                dialogueComplete = true;
+                Debug.Log($"[GameManager] Dialogue callback invoked");
+            });
+            
+            Debug.Log($"[GameManager] Waiting for dialogue to complete...");
+            // Wait until dialogue is complete
+            yield return new WaitUntil(() => dialogueComplete);
+            
+            Debug.Log($"[GameManager] Intro dialogue complete for Chapter {chapterNumber}");
+        }
+        else
+        {
+            Debug.Log($"[GameManager] No intro dialogue for Chapter {chapterNumber} - starting immediately");
+        }
+        
+        // Start playing after dialogue (or immediately if no dialogue)
         SetGameState(GameState.Playing);
         
         // Lock cursor for gameplay

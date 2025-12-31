@@ -12,20 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
   m_Name: Q_Chest_HollyBooksChapter1
   m_EditorClassIdentifier: Assembly-CSharp::QuestionData
-  approachDialogue: "\u0130\u015Fte ba\u015Fard\u0131n!\r\nSakl\u0131 sand\u0131klar\u0131n
-    ilkine ula\u015Ft\u0131n.\r\nAma sand\u0131\u011F\u0131 a\xE7\u0131p, i\xE7indekini
+  approachDialogueMessages:
+  - "\u0130\u015Fte ba\u015Fard\u0131n!\r\nSakl\u0131 sand\u0131klar\u0131n ilkine
+    ula\u015Ft\u0131n.\r\nAma sand\u0131\u011F\u0131 a\xE7\u0131p, i\xE7indekini
     alabilmek i\xE7in, \r\n\u015Eifrenin ne oldu\u011Funu bulmal\u0131s\u0131n."
-  successDialogue: "Tevrat, insanlara g\xF6nderilen ilk b\xFCy\xFCk kitapt\u0131.\r\nOndan
-    \xF6nce baz\u0131 peygamberlere sahifeler verilmi\u015Fti.\r\nHz. Musa (a.s.)
-    ve kavmi, ilk ilahi kitapla amel etti. \r\nFakat sonralar\u0131,\r\nHz. Musa\u2019n\u0131n
+  successDialogueMessages:
+  - "Tevrat, insanlara g\xF6nderilen ilk b\xFCy\xFCk kitapt\u0131.\r\nOndan \xF6nce
+    baz\u0131 peygamberlere sahifeler verilmi\u015Fti.\r\nHz. Musa (a.s.) ve kavmi,
+    ilk ilahi kitapla amel etti. \r\nFakat sonralar\u0131,\r\nHz. Musa\u2019n\u0131n
     (a.s.) kavmi olan Yahudiler,\r\nTevrat\u2019\u0131 de\u011Fi\u015Ftirdi.\r\nHo\u015Flar\u0131na
     gitmeyen h\xFCk\xFCmleri \xE7\u0131kar\u0131p,\r\nYerine kendi c\xFCmlelerini
     yerle\u015Ftirdi ve\r\n\u2018Bunlar Allah\u2019\u0131n ayetleridir.\u2019 dedi.\r\nD\xFCnyam\u0131z
     ilahi kitaptan mahrum kal\u0131nca,\r\n\u0130nsanlar imandan, do\u011Fruluk ve
-    adaletten uzakla\u015Ft\u0131.\r\nYery\xFCz\xFCnde huzur ve d\xFCzen kalmad\u0131.\r\nRabbimiz,
-    insanl\u0131\u011F\u0131n kurtulu\u015Fu i\xE7in\r\nYeni bir resul ve kitap g\xF6nderdi.\r\nO
-    kitap hangisi?\r\nG\xF6nderilen resul kimdi?\r\nEminim merak ettin.\r\nBu cevaplar\u0131
-    bulmak ise, senin yeni g\xF6revin.\r\n"
+    adaletten uzakla\u015Ft\u0131.\r\nYery\xFCz\xFCnde huzur ve d\xFCzen kalmad\u0131."
+  - "Rabbimiz, insanl\u0131\u011F\u0131n kurtulu\u015Fu i\xE7in\r\nYeni bir resul
+    ve kitap g\xF6nderdi.\r\nO kitap hangisi?\r\nG\xF6nderilen resul kimdi?\r\nEminim
+    merak ettin.\r\nBu cevaplar\u0131 bulmak ise, senin yeni g\xF6revin."
+  approachDialogue: 
+  successDialogue: 
   questionText: "Ka\xE7 tane b\xFCy\xFCk kitap g\xF6nderilmi\u015Ftir?"
   answers:
   - 5

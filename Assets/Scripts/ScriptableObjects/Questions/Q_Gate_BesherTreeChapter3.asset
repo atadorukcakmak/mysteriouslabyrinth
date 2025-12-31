@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Gate_BesherTreeChapter3
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogueMessages:
+  - "Yeni maceram\u0131z i\xE7in haz\u0131r m\u0131s\u0131n?\r\n\xD6nce, do\u011Fru
+    anahtar\u0131 bulmal\u0131s\u0131n."
+  successDialogueMessages:
+  - "\u0130\u015Fte i\xE7erdeyiz.\r\nBizi hangi maceralar\u0131n bekledi\u011Fini
+    g\xF6rmek istiyorsan,\r\n\u0130lerlemeliyiz.\r\nBelki biraz sohbet de ederiz.\r\nKullar\u0131n\u0131
+    \xE7ok seven merhametli Rabbimiz,\r\n\u0130nsanlara hep yeni f\u0131rsatlar vermi\u015F.\r\nD\xFCnyam\u0131z
+    cennet gibi olsun, \r\nKullar\u0131 ebedi hayatta da cenneti bulsun diye,\r\nBirbiri
+    ard\u0131nca peygamberler g\xF6ndermi\u015F, kitaplar indirmi\u015F."
+  - "Hani, d\xFCnyada iyiler oldu\u011Fu gibi, \r\nK\xF6t\xFCler de var demi\u015Ftik
+    ya,\r\n\u0130\u015Fte onlar da iyilere,\r\nRabbimizin yolunda ilerleyenlere,
+    \r\nHep engel olmak istemi\u015F."
+  approachDialogue: 
+  successDialogue: 
+  questionText: "\u201C\u0130lahi kitap\u2019\u2019 nedir?"
+  answers:
+  - "Allah (c.c.) taraf\u0131ndan g\xF6nderilen kutsal kitaplar"
+  - "\u0130lahi kitab\u0131"
+  - "Siyer kitab\u0131"
+  correctAnswerIndex: 0
+  questionType: 0
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"

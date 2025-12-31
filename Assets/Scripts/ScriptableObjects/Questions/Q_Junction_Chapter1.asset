@@ -12,12 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
   m_Name: Q_Junction_Chapter1
   m_EditorClassIdentifier: Assembly-CSharp::QuestionData
-  approachDialogue: "Elimdeki haritaya g\xF6re, bu yollardan biri \xE7\u0131kmaz
-    sokak.\r\nDi\u011Feri ise seni, sakl\u0131 sand\u0131\u011Fa g\xF6t\xFCrecek.\r\n\u015Eayet
-    yanl\u0131\u015F yolu se\xE7ersen, bu bize zaman kaybettirecek.\r\n\r\nDo\u011Fru
-    yolu se\xE7mek i\xE7in bir k\u0131lavuza ihtiyac\u0131m\u0131z var.\r\nKur\u2019an\u2019dan,
+  approachDialogueMessages:
+  - "Elimdeki haritaya g\xF6re, bu yollardan biri \xE7\u0131kmaz sokak.\r\nDi\u011Feri
+    ise seni, sakl\u0131 sand\u0131\u011Fa g\xF6t\xFCrecek.\r\n\u015Eayet yanl\u0131\u015F
+    yolu se\xE7ersen, bu bize zaman kaybettirecek."
+  - "Do\u011Fru yolu se\xE7mek i\xE7in bir k\u0131lavuza ihtiyac\u0131m\u0131z var.\r\nKur\u2019an\u2019dan,
     daha do\u011Fru yol g\xF6steren mi var?\r\nK\u0131lavuzumuz gelsin!\r\nDo\u011Fru
     cevab\u0131 verirsen, bize yolumuzu g\xF6stersin!"
+  successDialogueMessages: []
+  approachDialogue: 
   successDialogue: "Neler oldu b\xF6yle!\r\nDo\u011Fru cevab\u0131 vermenle, \r\nKur\u2019an
     bilgin sayesinde,\r\nGizemli labirent bir anda d\xF6n\xFC\u015F\xFCverdi,\r\nCennet
     gibi bir yere. \r\nKur\u2019an ilmi her yeri g\xFCzelle\u015Ftirir.\r\nKur\u2019an

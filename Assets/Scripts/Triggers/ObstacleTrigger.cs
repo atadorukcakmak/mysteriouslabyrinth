@@ -176,20 +176,21 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             Debug.Log($"[ObstacleTrigger] No camera or CameraManager - triggerCamera: {(triggerCamera != null ? triggerCamera.name : "NULL")}, CameraManager: {(CameraManager.Instance != null ? "EXISTS" : "NULL")}");
         }
 
-        string approachDialogue = customQuestion != null ? customQuestion.approachDialogue : null;
-        Debug.Log($"[ObstacleTrigger] Approach dialogue: {(string.IsNullOrEmpty(approachDialogue) ? "EMPTY" : approachDialogue)}");
+        // Get approach dialogue messages (supports two-part dialogue)
+        string[] approachMessages = customQuestion != null ? customQuestion.GetApproachDialogueMessages() : null;
+        Debug.Log($"[ObstacleTrigger] Approach dialogue: {(approachMessages != null && approachMessages.Length > 0 ? $"{approachMessages.Length} part(s)" : "EMPTY")}");
 
         // Diyalog varsa önce onu göster
-        if (!string.IsNullOrEmpty(approachDialogue) && UIManager.Instance != null)
+        if (approachMessages != null && approachMessages.Length > 0 && UIManager.Instance != null)
         {
-            Debug.Log($"[ObstacleTrigger] Showing dialogue...");
+            Debug.Log($"[ObstacleTrigger] Showing approach dialogue ({approachMessages.Length} part(s))...");
             bool dialogueComplete = false;
-            UIManager.Instance.ShowDialogueWithCallback(approachDialogue, () =>
+            UIManager.Instance.ShowDialogueSequence(approachMessages, () =>
             {
                 dialogueComplete = true;
             });
             yield return new WaitUntil(() => dialogueComplete);
-            Debug.Log($"[ObstacleTrigger] Dialogue complete");
+            Debug.Log($"[ObstacleTrigger] Approach dialogue complete");
         }
         
         // Soruyu göster
@@ -270,13 +271,14 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         // Bir frame bekle - soru paneli kapansın
         yield return null;
 
-        string successDialogue = customQuestion != null ? customQuestion.successDialogue : null;
+        // Get success dialogue messages (supports two-part dialogue)
+        string[] successMessages = customQuestion != null ? customQuestion.GetSuccessDialogueMessages() : null;
 
         // Show success dialogue and wait for Continue (hala UI mode'dayız)
-        if (!string.IsNullOrEmpty(successDialogue) && UIManager.Instance != null)
+        if (successMessages != null && successMessages.Length > 0 && UIManager.Instance != null)
         {
             bool dialogueClosed = false;
-            UIManager.Instance.ShowDialogueWithCallback(successDialogue, () =>
+            UIManager.Instance.ShowDialogueSequence(successMessages, () =>
             {
                 dialogueClosed = true;
             });

@@ -21,7 +21,8 @@ MonoBehaviour:
   junctionQuestions:
   - {fileID: 11400000, guid: 61b0bc5a5875eb34694d523e5046f301, type: 2}
   bookReward: {fileID: 11400000, guid: 8749dec4a7b143b4b8630d9868a8786e, type: 2}
-  introDialogue: "Ho\u015F geldin!\r\nLabirentleri sever misin?\r\nLabirentin, \u2018\u2019Yollar\u0131n
+  introDialogueMessages:
+  - "Ho\u015F geldin!\r\nLabirentleri sever misin?\r\nLabirentin, \u2018\u2019Yollar\u0131n
     ve ge\xE7itlerin karma\u015F\u0131kl\u0131\u011F\u0131 sebebiyle,\r\n\u0130\xE7inden
     kolay \xE7\u0131k\u0131lamayan yap\u0131\u2019\u2019 anlam\u0131na geldi\u011Fini
     bilirsin.\r\nAma bu seni hi\xE7 endi\u015Felendirmesin.\r\nBilginle kap\u0131lar\u0131
@@ -29,11 +30,12 @@ MonoBehaviour:
     \xE7\u0131kmak de\u011Fil.\r\n\u0130\xE7indeki sakl\u0131 sand\u0131klar\u0131
     bulmak.\r\n\u0130\u015Fimiz \xE7ok kolay de\u011Fil, anla\u015F\u0131ld\u0131.\r\nFakat
     e\u011Flenceli ve bir o kadar da heyecanl\u0131.\r\nSaklananlar\u0131 bulmak
-    ise b\xFCy\xFCk bir ba\u015Far\u0131.\r\nNe sakland\u0131?\r\nNereye saklad\u0131?\r\nBulunca
-    ne yapaca\u011F\u0131z onlar\u0131?\r\nBunlar\u0131 \xF6\u011Frenmek isteyenler,\r\nOyunu
-    tamamlamal\u0131!\r\nDaha fazla oyalanmayal\u0131m.\r\nHaz\u0131rsan \u2018\u2019Bismillah\u2019\u2019
+    ise b\xFCy\xFCk bir ba\u015Far\u0131."
+  - "Ne sakland\u0131?\r\nNereye saklad\u0131?\r\nBulunca ne yapaca\u011F\u0131z
+    onlar\u0131?\r\nBunlar\u0131 \xF6\u011Frenmek isteyenler,\r\nOyunu tamamlamal\u0131!\r\nDaha
+    fazla oyalanmayal\u0131m.\r\nHaz\u0131rsan \u2018\u2019Bismillah\u2019\u2019
     deyip ba\u015Flayal\u0131m."
-  obstacleDialogue: 
-  chestDialogue: 
+  completionDialogueMessages: []
+  introDialogue: 
   completionDialogue: 
   sceneName: SampleScene

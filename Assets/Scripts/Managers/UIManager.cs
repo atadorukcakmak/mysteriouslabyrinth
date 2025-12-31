@@ -515,6 +515,15 @@ public class UIManager : MonoBehaviour
         ShowDialogueSequence(new string[] { text }, onComplete);
     }
     
+    /// <summary>
+    /// Birden fazla diyalog gösterir, bitince callback çağırır ve UI mode'da kalır (oyuncu hareket edemez, cursor açık).
+    /// </summary>
+    public void ShowDialogueSequenceStayInUI(string[] messages, System.Action onComplete = null)
+    {
+        stayInUIAfterDialogue = true;
+        ShowDialogueSequence(messages, onComplete);
+    }
+    
     private void ShowNextDialogue()
     {
         if (dialogueQueue.Count == 0)

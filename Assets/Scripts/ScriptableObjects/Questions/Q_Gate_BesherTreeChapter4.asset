@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 686694bd4d5eb564d83f3ad0f37ac1ee, type: 3}
+  m_Name: Q_Gate_BesherTreeChapter4
+  m_EditorClassIdentifier: Assembly-CSharp::QuestionData
+  approachDialogueMessages:
+  - "Son kap\u0131day\u0131z.\r\nBu oyunu da tamamlad\u0131\u011F\u0131nda\r\nSakl\u0131
+    sand\u0131\u011Fa ve i\xE7indeki kitaba ula\u015Fm\u0131\u015F olaca\u011F\u0131z.\r\nAma
+    \xF6nce kap\u0131 sorusunu do\u011Fru cevaplamal\u0131y\u0131z"
+  successDialogueMessages: []
+  approachDialogue: 
+  successDialogue: 
+  questionText: "Ebabil ku\u015Flar\u0131ndan hangi surede bahsediliyordu?"
+  answers:
+  - Kevser Suresi
+  - Fatiha Suresi
+  - Fil Suresi
+  correctAnswerIndex: 2
+  questionType: 0
+  correctFeedback: "Do\u011Fru cevap!"
+  incorrectFeedback: "Yanl\u0131\u015F cevap!"
