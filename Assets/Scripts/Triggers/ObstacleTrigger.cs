@@ -35,6 +35,19 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     [SerializeField] private int environmentZoneId = -1; // Zone to transform on success
     [SerializeField] private float transformRadius = 10f;
     
+    [Header("Tree Leaves (Gate Only)")]
+    [Tooltip("TreeLeaf objects to activate when Gate obstacle is cleared. Leave empty to search by tag.")]
+    [SerializeField] private GameObject[] treeLeafObjects;
+    
+    [Header("Door (Gate Only)")]
+    [Tooltip("Door GameObject to open when Gate obstacle is cleared")]
+    [SerializeField] private GameObject doorObject;
+    
+    [Tooltip("Target Y rotation for the door when opened (in degrees)")]
+    [SerializeField] private float doorOpenRotationY = 140f;
+    
+    [Tooltip("Duration of door opening animation (in seconds)")]
+    [SerializeField] private float doorOpenDuration = 2f;
     
     #endregion
     
@@ -312,6 +325,37 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             blockingCollider.SetActive(false);
         }
         
+        Debug.Log($"[ObstacleTrigger] Checking obstacle type: {obstacleType}, IsGate: {obstacleType == ObstacleType.Gate}");
+        
+        // If this is a Gate obstacle, activate TreeLeaf objects and open door (no removal animation)
+        if (obstacleType == ObstacleType.Gate)
+        {
+            Debug.Log("[ObstacleTrigger] Gate obstacle detected, calling ActivateTreeLeaves()...");
+            ActivateTreeLeaves();
+            
+            // Open door if door object is set
+            if (doorObject != null)
+            {
+                Debug.Log("[ObstacleTrigger] Opening door...");
+                yield return StartCoroutine(OpenDoorCoroutine());
+            }
+            else
+            {
+                Debug.LogWarning("[ObstacleTrigger] Door object is not assigned!");
+            }
+            
+            Debug.Log("[ObstacleTrigger] Gate obstacle cleared - TreeLeaf objects activated and door opened, obstacle remains visible");
+            
+            // Disable trigger but keep obstacle visible
+            isActive = false;
+            yield break; // Exit early, don't run removal animations
+        }
+        else
+        {
+            Debug.Log($"[ObstacleTrigger] Non-Gate obstacle ({obstacleType}), proceeding with removal animation");
+        }
+        
+        // For non-Gate obstacles, run removal animations
         switch (removalType)
         {
             case RemovalType.Disappear:
@@ -331,7 +375,7 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
                 break;
         }
         
-        // Disable the obstacle visual
+        // Disable the obstacle visual (only for non-Gate obstacles)
         if (obstacleVisual != null)
         {
             obstacleVisual.SetActive(false);
@@ -472,6 +516,120 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             // Transform nearby zones based on position
             EnvironmentManager.Instance.TransformNearbyZones(transform.position, transformRadius);
         }
+    }
+    
+    /// <summary>
+    /// Activates all TreeLeaf objects when Gate obstacle is cleared.
+    /// First tries to use serialized treeLeafObjects array, then falls back to tag search.
+    /// </summary>
+    private void ActivateTreeLeaves()
+    {
+        Debug.Log("[ObstacleTrigger] ActivateTreeLeaves() called - searching for TreeLeaf objects...");
+        
+        System.Collections.Generic.List<GameObject> treeLeaves = new System.Collections.Generic.List<GameObject>();
+        
+        // First, use serialized array if available
+        if (treeLeafObjects != null && treeLeafObjects.Length > 0)
+        {
+            Debug.Log($"[ObstacleTrigger] Using serialized treeLeafObjects array ({treeLeafObjects.Length} object(s))");
+            foreach (GameObject leaf in treeLeafObjects)
+            {
+                if (leaf != null)
+                {
+                    treeLeaves.Add(leaf);
+                }
+            }
+        }
+        
+        // If no objects found in serialized array, search by tag (including inactive objects)
+        if (treeLeaves.Count == 0)
+        {
+            Debug.Log("[ObstacleTrigger] No serialized objects found, searching by 'TreeLeaf' tag...");
+            
+            // Find all objects with TreeLeaf tag (including inactive ones)
+            GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+            foreach (GameObject obj in allObjects)
+            {
+                if (obj.CompareTag("TreeLeaf"))
+                {
+                    treeLeaves.Add(obj);
+                }
+            }
+            
+            // Also try FindGameObjectsWithTag for active objects
+            GameObject[] activeTreeLeaves = GameObject.FindGameObjectsWithTag("TreeLeaf");
+            foreach (GameObject leaf in activeTreeLeaves)
+            {
+                if (!treeLeaves.Contains(leaf))
+                {
+                    treeLeaves.Add(leaf);
+                }
+            }
+        }
+        
+        Debug.Log($"[ObstacleTrigger] Found {treeLeaves.Count} TreeLeaf object(s) total");
+        
+        if (treeLeaves.Count > 0)
+        {
+            Debug.Log($"[ObstacleTrigger] Activating {treeLeaves.Count} TreeLeaf object(s)");
+            foreach (GameObject leaf in treeLeaves)
+            {
+                if (leaf != null)
+                {
+                    Debug.Log($"[ObstacleTrigger] Activating TreeLeaf: {leaf.name}");
+                    leaf.SetActive(true);
+                }
+                else
+                {
+                    Debug.LogWarning("[ObstacleTrigger] Found null TreeLeaf object in list");
+                }
+            }
+            Debug.Log("[ObstacleTrigger] All TreeLeaf objects activated");
+        }
+        else
+        {
+            Debug.LogWarning("[ObstacleTrigger] No TreeLeaf objects found! Make sure to either:");
+            Debug.LogWarning("  1. Assign TreeLeaf objects to 'Tree Leaf Objects' array in Inspector, OR");
+            Debug.LogWarning("  2. Tag your TreeLeaf objects with 'TreeLeaf' tag in Unity");
+        }
+    }
+    
+    /// <summary>
+    /// Smoothly opens the door by rotating it to the target Y rotation.
+    /// </summary>
+    private IEnumerator OpenDoorCoroutine()
+    {
+        if (doorObject == null)
+        {
+            Debug.LogWarning("[ObstacleTrigger] Door object is null, cannot open door");
+            yield break;
+        }
+        
+        Vector3 startRotation = doorObject.transform.localEulerAngles;
+        Vector3 targetRotation = new Vector3(startRotation.x, doorOpenRotationY, startRotation.z);
+        
+        Debug.Log($"[ObstacleTrigger] Opening door from Y={startRotation.y}° to Y={doorOpenRotationY}° over {doorOpenDuration}s");
+        
+        float elapsed = 0f;
+        
+        while (elapsed < doorOpenDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / doorOpenDuration;
+            
+            // Smooth ease-out curve
+            t = 1f - Mathf.Pow(1f - t, 3f);
+            
+            // Interpolate rotation
+            Vector3 currentRotation = Vector3.Lerp(startRotation, targetRotation, t);
+            doorObject.transform.localEulerAngles = currentRotation;
+            
+            yield return null;
+        }
+        
+        // Ensure final rotation is exact
+        doorObject.transform.localEulerAngles = targetRotation;
+        Debug.Log($"[ObstacleTrigger] Door opened to Y={doorOpenRotationY}°");
     }
     #endregion
     
