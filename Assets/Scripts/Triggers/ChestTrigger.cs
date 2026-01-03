@@ -53,6 +53,27 @@ public class ChestTrigger : MonoBehaviour, IInteractable
     [SerializeField] private ParticleSystem unlockParticles;
     [SerializeField] private AudioClip unlockSound;
     [SerializeField] private Light glowLight;
+    
+    [Header("Chest Audio")]
+    [Tooltip("Ambient sound that plays when player is nearby (stops when chest opens)")]
+    [SerializeField] private AudioClip chestAmbientSound;
+    [Tooltip("Sound when chest opens")]
+    [SerializeField] private AudioClip chestOpenSound;
+    [Tooltip("Maximum distance to hear ambient sound")]
+    [SerializeField] private float ambientSoundMaxDistance = 10f;
+    [Tooltip("Volume of ambient sound")]
+    [Range(0f, 1f)]
+    [SerializeField] private float ambientSoundVolume = 0.5f;
+    
+    [Header("Book Charging Effect")]
+    [Tooltip("Charging/explosion effect prefab that follows the book")]
+    [SerializeField] private GameObject chargingPopPrefab;
+    [Tooltip("Duration the charging effect follows the book (in seconds)")]
+    [SerializeField] private float chargingPopDuration = 2f;
+    [Tooltip("Scale of the charging effect")]
+    [SerializeField] private float chargingPopScale = 1f;
+    [Tooltip("Height offset above the book for the charging effect")]
+    [SerializeField] private float chargingPopHeightOffset = 0.5f;
     #endregion
     
     #region Properties
@@ -64,7 +85,10 @@ public class ChestTrigger : MonoBehaviour, IInteractable
     #region Private Fields
     private Collider triggerCollider;
     private bool playerInRange;
-    private AudioSource audioSource;
+    private GameObject activeChargingEffect;
+    private AudioSource ambientAudioSource;
+    private Transform playerTransform;
+    private bool ambientSoundPlaying;
     #endregion
     
     #region Initialization
@@ -73,11 +97,8 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         triggerCollider = GetComponent<Collider>();
         triggerCollider.isTrigger = true;
         
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null && unlockSound != null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
+        // Setup ambient audio source for 3D spatial sound
+        SetupAmbientAudio();
         
         // ChestAnimation'ı otomatik bul (atanmamışsa)
         if (chestAnimation == null)
@@ -99,6 +120,28 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         
         // Initial state
         SetChestVisuals(false);
+    }
+    
+    private void SetupAmbientAudio()
+    {
+        // Create ambient audio source for 3D spatial sound
+        ambientAudioSource = gameObject.AddComponent<AudioSource>();
+        ambientAudioSource.clip = chestAmbientSound;
+        ambientAudioSource.loop = true;
+        ambientAudioSource.playOnAwake = false;
+        ambientAudioSource.spatialBlend = 1f; // Full 3D
+        ambientAudioSource.rolloffMode = AudioRolloffMode.Linear;
+        ambientAudioSource.minDistance = 1f;
+        ambientAudioSource.maxDistance = ambientSoundMaxDistance;
+        ambientAudioSource.volume = ambientSoundVolume;
+        
+        // Start playing ambient if assigned and chest not opened
+        if (chestAmbientSound != null && !IsOpened)
+        {
+            ambientAudioSource.Play();
+            ambientSoundPlaying = true;
+            Debug.Log($"[ChestTrigger] Started ambient sound for {gameObject.name}");
+        }
     }
     
     private void Start()
@@ -308,9 +351,9 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         yield return null;
         
         // 1. Play unlock sound
-        if (audioSource != null && unlockSound != null)
+        if (unlockSound != null)
         {
-            audioSource.PlayOneShot(unlockSound);
+            AudioSource.PlayClipAtPoint(unlockSound, transform.position, 1f);
         }
         
         // 2. Play particles
@@ -319,7 +362,11 @@ public class ChestTrigger : MonoBehaviour, IInteractable
             unlockParticles.Play();
         }
         
-        // 3. Chest açılma animasyonu
+        // 3. Stop ambient sound and play chest open sound
+        StopAmbientSound();
+        PlayChestOpenSound();
+        
+        // 4. Chest açılma animasyonu
         Debug.Log("[ChestTrigger] Step 1: Playing chest open animation");
         if (useAnimator && chestAnimation != null)
         {
@@ -341,6 +388,8 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         
         // 5. Kitap dönerek yukarı çıkıyor
         Debug.Log("[ChestTrigger] Step 2: Book rising from chest");
+        
+        // AnimateBookRise içinde charging efekti spawn edilecek (kitap aktif olduktan sonra)
         yield return StartCoroutine(AnimateBookRise());
         
         // 5. Kitap UI'daki book slot'a uçuyor
@@ -478,6 +527,9 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         
         Debug.Log($"[ChestTrigger] Book activated at position: {bookVisual.transform.position}, scale: {bookVisual.transform.localScale}");
         
+        // Kitap aktif oldu, şimdi charging efektini spawn et
+        SpawnChargingEffect();
+        
         float elapsed = 0f;
         
         while (elapsed < bookRiseDuration)
@@ -595,6 +647,130 @@ public class ChestTrigger : MonoBehaviour, IInteractable
         bookVisual.transform.localScale = startScale; // Scale'i resetle
         
         Debug.Log("[ChestTrigger] Book fly to UI complete");
+    }
+    #endregion
+    
+    #region Charging Effect
+    /// <summary>
+    /// Spawns the charging effect and starts following the book.
+    /// </summary>
+    private void SpawnChargingEffect()
+    {
+        Debug.Log($"[ChestTrigger] SpawnChargingEffect called. Prefab: {(chargingPopPrefab != null ? chargingPopPrefab.name : "NULL")}");
+        
+        if (chargingPopPrefab == null)
+        {
+            Debug.LogWarning("[ChestTrigger] No charging pop prefab assigned, skipping effect");
+            return;
+        }
+        
+        if (bookVisual == null)
+        {
+            Debug.LogError("[ChestTrigger] Book visual is null, cannot spawn charging effect");
+            return;
+        }
+        
+        // Spawn effect at book's current position + height offset
+        Vector3 spawnPos = bookVisual.transform.position + Vector3.up * chargingPopHeightOffset;
+        Debug.Log($"[ChestTrigger] Spawning charging effect at position: {spawnPos} (offset: {chargingPopHeightOffset})");
+        
+        activeChargingEffect = Instantiate(chargingPopPrefab, spawnPos, Quaternion.identity);
+        
+        if (activeChargingEffect == null)
+        {
+            Debug.LogError("[ChestTrigger] Failed to instantiate charging effect!");
+            return;
+        }
+        
+        // Apply scale
+        activeChargingEffect.transform.localScale = Vector3.one * chargingPopScale;
+        
+        // Name it for easy identification in hierarchy
+        activeChargingEffect.name = "ChargingPop_BookEffect";
+        
+        Debug.Log($"[ChestTrigger] Spawned charging effect '{activeChargingEffect.name}' at {spawnPos}, scale: {chargingPopScale}, duration: {chargingPopDuration}s");
+        
+        // Start following the book
+        StartCoroutine(ChargingEffectFollowCoroutine());
+    }
+    
+    /// <summary>
+    /// Coroutine that makes the charging effect follow the book for a duration.
+    /// </summary>
+    private IEnumerator ChargingEffectFollowCoroutine()
+    {
+        if (activeChargingEffect == null || bookVisual == null)
+        {
+            yield break;
+        }
+        
+        float elapsed = 0f;
+        
+        while (elapsed < chargingPopDuration)
+        {
+            elapsed += Time.deltaTime;
+            
+            // Follow book position with height offset
+            if (activeChargingEffect != null && bookVisual != null && bookVisual.activeInHierarchy)
+            {
+                activeChargingEffect.transform.position = bookVisual.transform.position + Vector3.up * chargingPopHeightOffset;
+            }
+            else
+            {
+                // Book is no longer active, stop following
+                break;
+            }
+            
+            yield return null;
+        }
+        
+        // Destroy effect after duration
+        DestroyChargingEffect();
+    }
+    
+    /// <summary>
+    /// Stops the ambient sound when chest is opened.
+    /// </summary>
+    private void StopAmbientSound()
+    {
+        if (ambientAudioSource != null && ambientSoundPlaying)
+        {
+            ambientAudioSource.Stop();
+            ambientSoundPlaying = false;
+            Debug.Log($"[ChestTrigger] Stopped ambient sound for {gameObject.name}");
+        }
+    }
+    
+    /// <summary>
+    /// Plays the chest opening sound.
+    /// </summary>
+    private void PlayChestOpenSound()
+    {
+        if (chestOpenSound != null)
+        {
+            // Play at position for 3D effect
+            AudioSource.PlayClipAtPoint(chestOpenSound, transform.position, 1f);
+            Debug.Log($"[ChestTrigger] Playing chest open sound");
+        }
+        
+        // Also play book collected sound via AudioManager
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBookCollectedSound();
+        }
+    }
+    
+    /// <summary>
+    /// Destroys the active charging effect.
+    /// </summary>
+    private void DestroyChargingEffect()
+    {
+        if (activeChargingEffect != null)
+        {
+            Debug.Log("[ChestTrigger] Destroying charging effect");
+            Destroy(activeChargingEffect);
+            activeChargingEffect = null;
+        }
     }
     #endregion
     

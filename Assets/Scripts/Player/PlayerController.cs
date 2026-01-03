@@ -24,6 +24,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float interactionRange = 3f;
     [SerializeField] private LayerMask interactionMask;
     [SerializeField] private Transform interactionPoint;
+    
+    [Header("Footstep Audio")]
+    [Tooltip("Footstep sound clips (randomly selected)")]
+    [SerializeField] private AudioClip[] footstepClips;
+    [Tooltip("Volume of footstep sounds (0-1)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float footstepVolume = 0.5f;
+    [Tooltip("Time between footsteps when walking")]
+    [SerializeField] private float footstepInterval = 0.4f;
     #endregion
     
     #region Properties
@@ -47,6 +56,11 @@ public class PlayerController : MonoBehaviour
     // Cached interaction
     private IInteractable currentInteractable;
     private GameObject lastHitObject;
+    
+    // Footstep audio
+    private AudioSource footstepAudioSource;
+    private float footstepTimer;
+    private bool isMoving;
     #endregion
     
     #region Initialization
@@ -78,6 +92,24 @@ public class PlayerController : MonoBehaviour
         {
             interactionPoint = cameraHolder.GetComponentInChildren<Camera>()?.transform;
         }
+        
+        // Setup footstep audio source
+        SetupFootstepAudio();
+    }
+    
+    private void SetupFootstepAudio()
+    {
+        // Create or get AudioSource for footsteps
+        footstepAudioSource = GetComponent<AudioSource>();
+        if (footstepAudioSource == null)
+        {
+            footstepAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+        
+        // Configure audio source for footsteps
+        footstepAudioSource.playOnAwake = false;
+        footstepAudioSource.spatialBlend = 0f; // 2D sound for player's own footsteps
+        footstepAudioSource.loop = false;
     }
     
     private void Start()
@@ -183,12 +215,53 @@ public class PlayerController : MonoBehaviour
         // Calculate movement direction relative to player facing
         Vector3 moveDirection = transform.right * moveInput.x + transform.forward * moveInput.y;
         
+        // Check if player is moving
+        isMoving = moveDirection.magnitude > 0.1f;
+        
         // Apply movement
         controller.Move(moveDirection * walkSpeed * Time.deltaTime);
         
         // Apply gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+        
+        // Handle footstep sounds
+        HandleFootsteps();
+    }
+    
+    private void HandleFootsteps()
+    {
+        // Only play footsteps when grounded and moving
+        if (!IsGrounded || !isMoving || footstepClips == null || footstepClips.Length == 0)
+        {
+            return;
+        }
+        
+        // Update footstep timer
+        footstepTimer -= Time.deltaTime;
+        
+        if (footstepTimer <= 0f)
+        {
+            PlayFootstep();
+            footstepTimer = footstepInterval;
+        }
+    }
+    
+    private void PlayFootstep()
+    {
+        if (footstepAudioSource == null || footstepClips == null || footstepClips.Length == 0)
+        {
+            return;
+        }
+        
+        // Select random footstep clip
+        AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
+        
+        if (clip != null)
+        {
+            // Play with volume parameter
+            footstepAudioSource.PlayOneShot(clip, footstepVolume);
+        }
     }
     #endregion
     
@@ -351,6 +424,22 @@ public class PlayerController : MonoBehaviour
     public Transform GetCameraHolder()
     {
         return cameraHolder;
+    }
+    
+    /// <summary>
+    /// Sets the footstep volume.
+    /// </summary>
+    public void SetFootstepVolume(float volume)
+    {
+        footstepVolume = Mathf.Clamp01(volume);
+    }
+    
+    /// <summary>
+    /// Gets the current footstep volume.
+    /// </summary>
+    public float GetFootstepVolume()
+    {
+        return footstepVolume;
     }
     #endregion
 }

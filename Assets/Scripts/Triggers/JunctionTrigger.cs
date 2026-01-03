@@ -27,6 +27,11 @@ public class JunctionTrigger : MonoBehaviour
     
     [Header("Question")]
     [SerializeField] private QuestionData customQuestion; // Override chapter question
+    
+    [Header("Audio")]
+    [SerializeField] private AudioClip ufyoAppearSound; // Sound when Ufyo appears
+    [Range(0f, 1f)]
+    [SerializeField] private float ufyoSoundVolume = 0.7f;
     #endregion
     
     #region Properties
@@ -404,6 +409,13 @@ public class JunctionTrigger : MonoBehaviour
         }
         
         ufyoVisual.SetActive(true);
+        
+        // Play Ufyo appear sound
+        if (ufyoAppearSound != null)
+        {
+            AudioSource.PlayClipAtPoint(ufyoAppearSound, ufyoVisual.transform.position, ufyoSoundVolume);
+            Debug.Log("[JunctionTrigger] Playing Ufyo appear sound");
+        }
         
         // Face player
         PlayerController player = FindFirstObjectByType<PlayerController>();

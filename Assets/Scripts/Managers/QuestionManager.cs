@@ -175,6 +175,19 @@ public class QuestionManager : MonoBehaviour
         
         Debug.Log($"[QuestionManager] Answer {answerIndex} selected. Correct: {isCorrect}");
         
+        // Play answer sound
+        if (AudioManager.Instance != null)
+        {
+            if (isCorrect)
+            {
+                AudioManager.Instance.PlayCorrectAnswerSound();
+            }
+            else
+            {
+                AudioManager.Instance.PlayWrongAnswerSound();
+            }
+        }
+        
         if (isCorrect)
         {
             // CORRECT ANSWER - Mark correct, show success dialogue with animation
@@ -183,21 +196,44 @@ public class QuestionManager : MonoBehaviour
                 // Önce doğru şıkkı yeşil yap
                 UIManager.Instance.MarkCorrectAnswer(answerIndex);
                 
-                // Sonra success mesajını diyalog olarak göster (düşen harflerle)
-                // Continue'a basıldığında soru kapanacak
-                UIManager.Instance.ShowSuccessDialogue(feedback, () =>
+                // Gate soruları için özel akış - anahtar animasyonu göster
+                if (CurrentQuestion.questionType == QuestionType.Gate)
                 {
-                    // Continue'a basıldığında burası çalışır
-                    // Soru panelini kapat ama UI mode'da kal - trigger success diyaloğunu gösterecek
-                    if (UIManager.Instance != null)
-                    {
-                        UIManager.Instance.CloseQuestion(stayInUIMode: true);
-                    }
+                    Debug.Log("[QuestionManager] Gate question - showing key animation before proceeding");
                     
-                    OnQuestionAnswered?.Invoke(true);
-                    currentCallback?.Invoke(true);
-                    CompleteQuestion();
-                });
+                    // Anahtar animasyonu göster, bitince devam et (Continue bekleme)
+                    UIManager.Instance.ShowKeyAnimation(() =>
+                    {
+                        // Anahtar animasyonu bitti, success dialogue'u atla ve direkt devam et
+                        Debug.Log("[QuestionManager] Key animation complete, closing question");
+                        
+                        if (UIManager.Instance != null)
+                        {
+                            UIManager.Instance.CloseQuestion(stayInUIMode: true);
+                        }
+                        
+                        OnQuestionAnswered?.Invoke(true);
+                        currentCallback?.Invoke(true);
+                        CompleteQuestion();
+                    });
+                }
+                else
+                {
+                    // Normal sorular için eski akış - success dialogue göster
+                    UIManager.Instance.ShowSuccessDialogue(feedback, () =>
+                    {
+                        // Continue'a basıldığında burası çalışır
+                        // Soru panelini kapat ama UI mode'da kal - trigger success diyaloğunu gösterecek
+                        if (UIManager.Instance != null)
+                        {
+                            UIManager.Instance.CloseQuestion(stayInUIMode: true);
+                        }
+                        
+                        OnQuestionAnswered?.Invoke(true);
+                        currentCallback?.Invoke(true);
+                        CompleteQuestion();
+                    });
+                }
             }
         }
         else

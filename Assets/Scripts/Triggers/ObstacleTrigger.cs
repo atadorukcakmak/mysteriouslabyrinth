@@ -49,6 +49,13 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     [Tooltip("Duration of door opening animation (in seconds)")]
     [SerializeField] private float doorOpenDuration = 2f;
     
+    [Header("Audio (Gate Only)")]
+    [Tooltip("Sound played when door opens")]
+    [SerializeField] private AudioClip doorOpenSound;
+    [Tooltip("Volume of door opening sound")]
+    [Range(0f, 1f)]
+    [SerializeField] private float doorSoundVolume = 0.7f;
+    
     #endregion
     
     #region Properties
@@ -59,6 +66,7 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     #region Private Fields
     private Collider triggerCollider;
     private bool playerInRange;
+    private bool doorAnimationComplete;
     #endregion
     
     #region Initialization
@@ -284,39 +292,29 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         // Bir frame bekle - soru paneli kapansın
         yield return null;
 
-        // Get success dialogue messages (supports two-part dialogue)
-        string[] successMessages = customQuestion != null ? customQuestion.GetSuccessDialogueMessages() : null;
+        // Gate soruları için success dialogue atlanır - anahtar animasyonu yeterli
+        // Diğer sorular için success dialogue göster
+        if (obstacleType != ObstacleType.Gate)
+        {
+            // Get success dialogue messages (supports two-part dialogue)
+            string[] successMessages = customQuestion != null ? customQuestion.GetSuccessDialogueMessages() : null;
 
-        // Show success dialogue and wait for Continue (hala UI mode'dayız)
-        if (successMessages != null && successMessages.Length > 0 && UIManager.Instance != null)
-        {
-            bool dialogueClosed = false;
-            UIManager.Instance.ShowDialogueSequence(successMessages, () =>
+            // Show success dialogue and wait for Continue (hala UI mode'dayız)
+            if (successMessages != null && successMessages.Length > 0 && UIManager.Instance != null)
             {
-                dialogueClosed = true;
-            });
+                bool dialogueClosed = false;
+                UIManager.Instance.ShowDialogueSequence(successMessages, () =>
+                {
+                    dialogueClosed = true;
+                });
 
-            // Wait until user presses Continue
-            yield return new WaitUntil(() => dialogueClosed);
+                // Wait until user presses Continue
+                yield return new WaitUntil(() => dialogueClosed);
+            }
         }
-        
-        // Oyuncu kamerasına geri dön
-        if (triggerCamera != null && CameraManager.Instance != null)
+        else
         {
-            Debug.Log($"[ObstacleTrigger] Returning to player camera...");
-            bool cameraReturnComplete = false;
-            CameraManager.Instance.TransitionToPlayerCamera(cameraTransitionDuration, () =>
-            {
-                cameraReturnComplete = true;
-            });
-            yield return new WaitUntil(() => cameraReturnComplete);
-            Debug.Log($"[ObstacleTrigger] Returned to player camera");
-        }
-        
-        // Oyun moduna dön
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ReturnToGameMode();
+            Debug.Log("[ObstacleTrigger] Gate obstacle - skipping success dialogue, key animation was already shown");
         }
         
         // Disable blocking collider
@@ -328,23 +326,68 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         Debug.Log($"[ObstacleTrigger] Checking obstacle type: {obstacleType}, IsGate: {obstacleType == ObstacleType.Gate}");
         
         // If this is a Gate obstacle, activate TreeLeaf objects and open door (no removal animation)
+        // Camera transition happens AFTER success dialogue is complete for Gate
         if (obstacleType == ObstacleType.Gate)
         {
             Debug.Log("[ObstacleTrigger] Gate obstacle detected, calling ActivateTreeLeaves()...");
             ActivateTreeLeaves();
             
-            // Open door if door object is set
+            // Get success dialogue for Gate
+            string[] successMessages = customQuestion != null ? customQuestion.GetSuccessDialogueMessages() : null;
+            
+            // Start door opening and show success text at the same time (parallel)
+            bool dialogueComplete = false;
+            
+            // Show success dialogue (with Continue button)
+            if (successMessages != null && successMessages.Length > 0 && UIManager.Instance != null)
+            {
+                Debug.Log("[ObstacleTrigger] Showing success text while door opens...");
+                UIManager.Instance.ShowDialogueSequence(successMessages, () =>
+                {
+                    dialogueComplete = true;
+                    Debug.Log("[ObstacleTrigger] Success dialogue completed (Continue pressed)");
+                });
+            }
+            else
+            {
+                dialogueComplete = true; // No dialogue to show
+            }
+            
+            // Start door opening animation (parallel - don't wait for it)
             if (doorObject != null)
             {
-                Debug.Log("[ObstacleTrigger] Opening door...");
-                yield return StartCoroutine(OpenDoorCoroutine());
+                Debug.Log("[ObstacleTrigger] Opening door (parallel with success text)...");
+                StartCoroutine(OpenDoorCoroutine());
             }
             else
             {
                 Debug.LogWarning("[ObstacleTrigger] Door object is not assigned!");
             }
             
-            Debug.Log("[ObstacleTrigger] Gate obstacle cleared - TreeLeaf objects activated and door opened, obstacle remains visible");
+            // Wait for player to press Continue on success dialogue (door opens in parallel)
+            yield return new WaitUntil(() => dialogueComplete);
+            Debug.Log("[ObstacleTrigger] Player completed success dialogue");
+            
+            // Now return camera to player
+            if (triggerCamera != null && CameraManager.Instance != null)
+            {
+                Debug.Log("[ObstacleTrigger] Returning to player camera...");
+                bool cameraReturnComplete = false;
+                CameraManager.Instance.TransitionToPlayerCamera(cameraTransitionDuration, () =>
+                {
+                    cameraReturnComplete = true;
+                });
+                yield return new WaitUntil(() => cameraReturnComplete);
+                Debug.Log("[ObstacleTrigger] Returned to player camera");
+            }
+            
+            // Return to game mode
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ReturnToGameMode();
+            }
+            
+            Debug.Log("[ObstacleTrigger] Gate obstacle cleared - TreeLeaf objects activated and door opened");
             
             // Disable trigger but keep obstacle visible
             isActive = false;
@@ -353,6 +396,25 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         else
         {
             Debug.Log($"[ObstacleTrigger] Non-Gate obstacle ({obstacleType}), proceeding with removal animation");
+            
+            // For non-Gate obstacles, return camera to player BEFORE removal animation
+            if (triggerCamera != null && CameraManager.Instance != null)
+            {
+                Debug.Log($"[ObstacleTrigger] Returning to player camera...");
+                bool cameraReturnComplete = false;
+                CameraManager.Instance.TransitionToPlayerCamera(cameraTransitionDuration, () =>
+                {
+                    cameraReturnComplete = true;
+                });
+                yield return new WaitUntil(() => cameraReturnComplete);
+                Debug.Log($"[ObstacleTrigger] Returned to player camera");
+            }
+            
+            // Return to game mode
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ReturnToGameMode();
+            }
         }
         
         // For non-Gate obstacles, run removal animations
@@ -599,9 +661,12 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     /// </summary>
     private IEnumerator OpenDoorCoroutine()
     {
+        doorAnimationComplete = false;
+        
         if (doorObject == null)
         {
             Debug.LogWarning("[ObstacleTrigger] Door object is null, cannot open door");
+            doorAnimationComplete = true;
             yield break;
         }
         
@@ -609,6 +674,13 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         Vector3 targetRotation = new Vector3(startRotation.x, doorOpenRotationY, startRotation.z);
         
         Debug.Log($"[ObstacleTrigger] Opening door from Y={startRotation.y}° to Y={doorOpenRotationY}° over {doorOpenDuration}s");
+        
+        // Play door opening sound
+        if (doorOpenSound != null)
+        {
+            AudioSource.PlayClipAtPoint(doorOpenSound, doorObject.transform.position, doorSoundVolume);
+            Debug.Log("[ObstacleTrigger] Playing door open sound");
+        }
         
         float elapsed = 0f;
         
@@ -630,6 +702,9 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         // Ensure final rotation is exact
         doorObject.transform.localEulerAngles = targetRotation;
         Debug.Log($"[ObstacleTrigger] Door opened to Y={doorOpenRotationY}°");
+        
+        // Mark animation as complete
+        doorAnimationComplete = true;
     }
     #endregion
     

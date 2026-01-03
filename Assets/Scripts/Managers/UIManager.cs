@@ -63,6 +63,16 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Image[] answerKeyIcons; // Gate soruları için anahtar ikonları
     [SerializeField] private Sprite keySprite; // Anahtar sprite'ı (Assets/Sprites/anahtar.png)
     
+    [Header("Key Animation (Gate Only)")]
+    [Tooltip("Panel for key animation overlay")]
+    [SerializeField] private GameObject keyAnimationPanel;
+    [Tooltip("Image that shows the key growing to center")]
+    [SerializeField] private Image keyAnimationImage;
+    [Tooltip("Particle/glow effect around the key")]
+    [SerializeField] private GameObject keyGlowEffect;
+    [Tooltip("Duration of key animation")]
+    [SerializeField] private float keyAnimationDuration = 1.5f;
+    
     [Header("Chapter Transition")]
     [SerializeField] private TMP_Text chapterTitleText;
     [SerializeField] private TMP_Text chapterDescriptionText;
@@ -537,6 +547,12 @@ public class UIManager : MonoBehaviour
         
         SetPanelActive(dialoguePanel, true);
         
+        // Play dialogue appear sound
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayDialogueAppear();
+        }
+        
         // Cursor'u aç
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -682,6 +698,12 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void OnContinueDialogue()
     {
+        // Play continue sound
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayContinueSound();
+        }
+        
         if (isDialogueAnimating || isAnimatingText)
         {
             // Animasyon devam ediyorsa - tamamla
@@ -877,6 +899,12 @@ public class UIManager : MonoBehaviour
     {
         if (!isShowingQuestion) return;
         
+        // Play button click sound
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayButtonClick();
+        }
+        
         // Don't disable buttons here - let QuestionManager decide
         OnAnswerSelected?.Invoke(index);
     }
@@ -1038,6 +1066,142 @@ public class UIManager : MonoBehaviour
             successContinueCallback = null;
             callback?.Invoke();
         }
+    }
+    
+    /// <summary>
+    /// Shows key animation for Gate questions. Key grows to center with glow effect.
+    /// </summary>
+    /// <param name="onComplete">Called when animation completes</param>
+    public void ShowKeyAnimation(System.Action onComplete)
+    {
+        StartCoroutine(KeyAnimationCoroutine(onComplete));
+    }
+    
+    private IEnumerator KeyAnimationCoroutine(System.Action onComplete)
+    {
+        Debug.Log("[UIManager] Starting key animation...");
+        
+        // Play key unlock sound
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayKeyUnlockSound();
+        }
+        
+        // Show panel and glow effect
+        if (keyAnimationPanel != null)
+        {
+            keyAnimationPanel.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("[UIManager] Key animation panel is not assigned!");
+            onComplete?.Invoke();
+            yield break;
+        }
+        
+        if (keyGlowEffect != null)
+        {
+            keyGlowEffect.SetActive(true);
+        }
+        
+        // Set initial state for key image
+        if (keyAnimationImage != null)
+        {
+            keyAnimationImage.gameObject.SetActive(true);
+            
+            if (keySprite != null)
+            {
+                keyAnimationImage.sprite = keySprite;
+            }
+            
+            // Start small and transparent
+            keyAnimationImage.transform.localScale = Vector3.zero;
+            Color startColor = keyAnimationImage.color;
+            startColor.a = 0f;
+            keyAnimationImage.color = startColor;
+        }
+        
+        float elapsed = 0f;
+        Vector3 targetScale = Vector3.one * 2f; // Grow to 2x size
+        
+        // Animation loop
+        while (elapsed < keyAnimationDuration)
+        {
+            elapsed += Time.unscaledDeltaTime; // Use unscaledDeltaTime in case game is paused
+            float t = elapsed / keyAnimationDuration;
+            
+            // Ease out elastic for bouncy effect
+            float easeT;
+            if (t < 0.6f)
+            {
+                // First 60% - grow with overshoot
+                float normalizedT = t / 0.6f;
+                easeT = 1f - Mathf.Pow(1f - normalizedT, 3f);
+                easeT = easeT * 1.2f; // Overshoot to 120%
+            }
+            else
+            {
+                // Last 40% - settle back
+                float normalizedT = (t - 0.6f) / 0.4f;
+                easeT = 1.2f - 0.2f * normalizedT; // From 120% to 100%
+            }
+            
+            if (keyAnimationImage != null)
+            {
+                // Scale animation
+                keyAnimationImage.transform.localScale = targetScale * Mathf.Min(easeT, 1.2f);
+                
+                // Fade in (first 30%)
+                Color color = keyAnimationImage.color;
+                color.a = Mathf.Clamp01(t / 0.3f);
+                keyAnimationImage.color = color;
+                
+                // Subtle rotation
+                float rotation = Mathf.Sin(t * Mathf.PI * 4f) * 5f * (1f - t);
+                keyAnimationImage.transform.localRotation = Quaternion.Euler(0f, 0f, rotation);
+            }
+            
+            // Pulse glow effect
+            if (keyGlowEffect != null)
+            {
+                float glowScale = 1f + Mathf.Sin(t * Mathf.PI * 6f) * 0.1f;
+                keyGlowEffect.transform.localScale = Vector3.one * glowScale;
+            }
+            
+            yield return null;
+        }
+        
+        // Final state
+        if (keyAnimationImage != null)
+        {
+            keyAnimationImage.transform.localScale = targetScale;
+            keyAnimationImage.transform.localRotation = Quaternion.identity;
+            Color finalColor = keyAnimationImage.color;
+            finalColor.a = 1f;
+            keyAnimationImage.color = finalColor;
+        }
+        
+        Debug.Log("[UIManager] Key animation complete");
+        
+        // Small pause at the end to let player see the key
+        yield return new WaitForSecondsRealtime(0.3f);
+        
+        // Hide animation elements
+        if (keyAnimationPanel != null)
+        {
+            keyAnimationPanel.SetActive(false);
+        }
+        if (keyGlowEffect != null)
+        {
+            keyGlowEffect.SetActive(false);
+        }
+        if (keyAnimationImage != null)
+        {
+            keyAnimationImage.gameObject.SetActive(false);
+        }
+        
+        // Callback
+        onComplete?.Invoke();
     }
     
     // Eski method - artık kullanılmıyor ama uyumluluk için bırakıyoruz
