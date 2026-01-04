@@ -31,6 +31,35 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     [SerializeField] private Transform sinkTarget; // For sinking animation (Pharaoh into water)
     [SerializeField] private float sinkDepth = 3f;
     
+    [Header("Dramatic Drowning Settings")]
+    [Tooltip("Water plane that becomes visible during drowning")]
+    [SerializeField] private GameObject waterPlane;
+    
+    [Tooltip("Total duration of the drowning sequence")]
+    [SerializeField] private float drowningDuration = 3.5f;
+    
+    [Header("Drowning - Shake Phase")]
+    [Tooltip("How long the statue shakes before sinking")]
+    [SerializeField] private float shakeDuration = 0.8f;
+    [Tooltip("Intensity of the shake")]
+    [SerializeField] private float shakeIntensity = 0.05f;
+    
+    [Header("Drowning - Tilt Phase")]
+    [Tooltip("Maximum tilt angle on X axis")]
+    [SerializeField] private float maxTiltX = 15f;
+    [Tooltip("Maximum tilt angle on Z axis")]
+    [SerializeField] private float maxTiltZ = 20f;
+    
+    [Header("Drowning - Wobble Phase")]
+    [Tooltip("Horizontal wobble frequency during sink")]
+    [SerializeField] private float wobbleFrequency = 3f;
+    [Tooltip("Horizontal wobble amplitude")]
+    [SerializeField] private float wobbleAmplitude = 0.1f;
+    
+    [Header("Drowning - Final Spin")]
+    [Tooltip("Y rotation during final phase")]
+    [SerializeField] private float finalSpinDegrees = 60f;
+    
     [Header("Environment")]
     [SerializeField] private int environmentZoneId = -1; // Zone to transform on success
     [SerializeField] private float transformRadius = 10f;
@@ -493,25 +522,183 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     
     private IEnumerator SinkCoroutine()
     {
-        Vector3 startPos = obstacleVisual.transform.position;
-        Vector3 endPos = startPos - Vector3.up * sinkDepth;
-        float elapsed = 0f;
+        // Use the new dramatic drowning sequence
+        yield return StartCoroutine(DramaticDrowningCoroutine());
+    }
+    
+    /// <summary>
+    /// Dramatic 5-phase drowning sequence:
+    /// Phase 1: SHAKE (0.0 - 0.8s) - Statue trembles as if struggling
+    /// Phase 2: TIP (0.3 - 1.0s) - Statue tilts to one side
+    /// Phase 3: SINK (0.8 - 3.5s) - Accelerating descent (Ease-In-Quad)
+    /// Phase 4: WOBBLE (1.0 - 3.0s) - Horizontal oscillation during sink
+    /// Phase 5: FINAL SPIN (2.5 - 3.5s) - Dramatic Y rotation
+    /// </summary>
+    private IEnumerator DramaticDrowningCoroutine()
+    {
+        Debug.Log($"[ObstacleTrigger] Starting dramatic drowning sequence for {gameObject.name}");
         
-        while (elapsed < removalDuration)
+        // Activate water plane
+        if (waterPlane != null)
+        {
+            waterPlane.SetActive(true);
+            Debug.Log("[ObstacleTrigger] Water plane activated");
+        }
+        
+        // Store initial transform values
+        Vector3 startPos = obstacleVisual.transform.position;
+        Quaternion startRot = obstacleVisual.transform.rotation;
+        Vector3 startEuler = startRot.eulerAngles;
+        
+        // Calculate end position (use sinkTarget if available, otherwise use sinkDepth)
+        Vector3 endPos;
+        if (sinkTarget != null)
+        {
+            endPos = sinkTarget.position;
+        }
+        else
+        {
+            endPos = startPos - Vector3.up * sinkDepth;
+        }
+        
+        // Randomize tilt direction for organic feel
+        float tiltDirectionX = Random.Range(-1f, 1f) > 0 ? 1f : -1f;
+        float tiltDirectionZ = Random.Range(-1f, 1f) > 0 ? 1f : -1f;
+        float targetTiltX = maxTiltX * tiltDirectionX * Random.Range(0.7f, 1f);
+        float targetTiltZ = maxTiltZ * tiltDirectionZ * Random.Range(0.7f, 1f);
+        float targetSpinY = finalSpinDegrees * (Random.Range(-1f, 1f) > 0 ? 1f : -1f);
+        
+        Debug.Log($"[ObstacleTrigger] Drowning params - TiltX: {targetTiltX:F1}°, TiltZ: {targetTiltZ:F1}°, SpinY: {targetSpinY:F1}°");
+        Debug.Log($"[ObstacleTrigger] Sink from {startPos} to {endPos}");
+        
+        float elapsed = 0f;
+        float totalDuration = drowningDuration;
+        
+        // Phase timing (normalized 0-1)
+        float shakeEnd = shakeDuration / totalDuration;           // ~0.23
+        float tipStart = 0.08f;                                    // Start tipping early
+        float tipEnd = 0.35f;                                      // Finish tipping
+        float sinkStart = 0.2f;                                    // Start sinking
+        float wobbleStart = 0.25f;                                 // Start wobbling
+        float wobbleEnd = 0.85f;                                   // End wobbling
+        float spinStart = 0.7f;                                    // Start final spin
+        
+        while (elapsed < totalDuration)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / removalDuration;
+            float t = Mathf.Clamp01(elapsed / totalDuration);  // Normalized time 0-1
             
-            // Ease out
-            t = 1f - Mathf.Pow(1f - t, 2f);
+            Vector3 currentPos = startPos;
+            Vector3 currentEuler = startEuler;
             
-            obstacleVisual.transform.position = Vector3.Lerp(startPos, endPos, t);
+            // ═══════════════════════════════════════════════════════════
+            // PHASE 1: SHAKE (0.0 - shakeEnd)
+            // ═══════════════════════════════════════════════════════════
+            if (t < shakeEnd)
+            {
+                float shakeT = t / shakeEnd;  // 0-1 within shake phase
+                float shakeFade = 1f - shakeT;  // Fade out shake as we progress
+                
+                float shakeX = (Mathf.PerlinNoise(Time.time * 50f, 0f) - 0.5f) * 2f * shakeIntensity * shakeFade;
+                float shakeZ = (Mathf.PerlinNoise(0f, Time.time * 50f) - 0.5f) * 2f * shakeIntensity * shakeFade;
+                
+                currentPos.x += shakeX;
+                currentPos.z += shakeZ;
+            }
+            
+            // ═══════════════════════════════════════════════════════════
+            // PHASE 2: TIP (tipStart - tipEnd)
+            // ═══════════════════════════════════════════════════════════
+            if (t >= tipStart && t <= 1f)
+            {
+                float tipT;
+                if (t <= tipEnd)
+                {
+                    // Ramping up the tilt
+                    tipT = (t - tipStart) / (tipEnd - tipStart);
+                    tipT = EaseOutQuad(tipT);  // Smooth ease-out for natural feel
+                }
+                else
+                {
+                    // Hold the tilt
+                    tipT = 1f;
+                }
+                
+                currentEuler.x = startEuler.x + targetTiltX * tipT;
+                currentEuler.z = startEuler.z + targetTiltZ * tipT;
+            }
+            
+            // ═══════════════════════════════════════════════════════════
+            // PHASE 3: SINK (sinkStart - 1.0) with Ease-In-Quad
+            // ═══════════════════════════════════════════════════════════
+            if (t >= sinkStart)
+            {
+                float sinkT = (t - sinkStart) / (1f - sinkStart);  // 0-1 within sink phase
+                sinkT = EaseInQuad(sinkT);  // Accelerating descent - key for realism!
+                
+                currentPos.y = Mathf.Lerp(startPos.y, endPos.y, sinkT);
+            }
+            
+            // ═══════════════════════════════════════════════════════════
+            // PHASE 4: WOBBLE (wobbleStart - wobbleEnd)
+            // ═══════════════════════════════════════════════════════════
+            if (t >= wobbleStart && t <= wobbleEnd)
+            {
+                float wobbleT = (t - wobbleStart) / (wobbleEnd - wobbleStart);
+                float wobbleFade = 1f - wobbleT;  // Fade out wobble as it sinks deeper
+                
+                float wobbleOffset = Mathf.Sin(elapsed * wobbleFrequency * Mathf.PI * 2f) * wobbleAmplitude * wobbleFade;
+                currentPos.x += wobbleOffset;
+            }
+            
+            // ═══════════════════════════════════════════════════════════
+            // PHASE 5: FINAL SPIN (spinStart - 1.0)
+            // ═══════════════════════════════════════════════════════════
+            if (t >= spinStart)
+            {
+                float spinT = (t - spinStart) / (1f - spinStart);
+                spinT = EaseInOutQuad(spinT);  // Smooth spin
+                
+                currentEuler.y = startEuler.y + targetSpinY * spinT;
+            }
+            
+            // Apply the calculated transform
+            obstacleVisual.transform.position = currentPos;
+            obstacleVisual.transform.rotation = Quaternion.Euler(currentEuler);
             
             yield return null;
         }
         
+        // Ensure final position
         obstacleVisual.transform.position = endPos;
+        Debug.Log($"[ObstacleTrigger] Drowning sequence complete. Final position: {endPos}");
     }
+    
+    #region Easing Functions
+    /// <summary>
+    /// Ease-In Quadratic: Starts slow, accelerates. Perfect for sinking physics.
+    /// </summary>
+    private float EaseInQuad(float t)
+    {
+        return t * t;
+    }
+    
+    /// <summary>
+    /// Ease-Out Quadratic: Starts fast, decelerates. Good for initial tilt.
+    /// </summary>
+    private float EaseOutQuad(float t)
+    {
+        return 1f - (1f - t) * (1f - t);
+    }
+    
+    /// <summary>
+    /// Ease-In-Out Quadratic: Smooth start and end. Good for spins.
+    /// </summary>
+    private float EaseInOutQuad(float t)
+    {
+        return t < 0.5f ? 2f * t * t : 1f - Mathf.Pow(-2f * t + 2f, 2f) / 2f;
+    }
+    #endregion
     
     private IEnumerator ExplodeCoroutine()
     {
