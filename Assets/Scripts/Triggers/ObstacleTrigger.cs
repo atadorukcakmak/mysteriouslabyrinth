@@ -60,6 +60,26 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     [Tooltip("Y rotation during final phase")]
     [SerializeField] private float finalSpinDegrees = 60f;
     
+    [Header("Water Rise (Pharaoh Only)")]
+    [Tooltip("Water object that rises from the ground when Pharaoh obstacle is cleared")]
+    [SerializeField] private GameObject waterRiseObject;
+    
+    [Tooltip("How high the water rises from its starting position")]
+    [SerializeField] private float waterRiseHeight = 2f;
+    
+    [Tooltip("Duration of water rising animation")]
+    [SerializeField] private float waterRiseDuration = 2f;
+    
+    [Tooltip("Delay before water starts rising (after question answered)")]
+    [SerializeField] private float waterRiseDelay = 0.5f;
+    
+    [Tooltip("Sound played when water starts rising")]
+    [SerializeField] private AudioClip waterRiseSound;
+    
+    [Tooltip("Volume of water rising sound")]
+    [Range(0f, 1f)]
+    [SerializeField] private float waterRiseSoundVolume = 0.8f;
+    
     [Header("Environment")]
     [SerializeField] private int environmentZoneId = -1; // Zone to transform on success
     [SerializeField] private float transformRadius = 10f;
@@ -425,28 +445,9 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         else
         {
             Debug.Log($"[ObstacleTrigger] Non-Gate obstacle ({obstacleType}), proceeding with removal animation");
-            
-            // For non-Gate obstacles, return camera to player BEFORE removal animation
-            if (triggerCamera != null && CameraManager.Instance != null)
-            {
-                Debug.Log($"[ObstacleTrigger] Returning to player camera...");
-                bool cameraReturnComplete = false;
-                CameraManager.Instance.TransitionToPlayerCamera(cameraTransitionDuration, () =>
-                {
-                    cameraReturnComplete = true;
-                });
-                yield return new WaitUntil(() => cameraReturnComplete);
-                Debug.Log($"[ObstacleTrigger] Returned to player camera");
-            }
-            
-            // Return to game mode
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.ReturnToGameMode();
-            }
         }
         
-        // For non-Gate obstacles, run removal animations
+        // For non-Gate obstacles, run removal animations FIRST
         switch (removalType)
         {
             case RemovalType.Disappear:
@@ -470,6 +471,25 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         if (obstacleVisual != null)
         {
             obstacleVisual.SetActive(false);
+        }
+        
+        // For non-Gate obstacles, return camera to player AFTER removal animation
+        if (triggerCamera != null && CameraManager.Instance != null)
+        {
+            Debug.Log($"[ObstacleTrigger] Returning to player camera...");
+            bool cameraReturnComplete = false;
+            CameraManager.Instance.TransitionToPlayerCamera(cameraTransitionDuration, () =>
+            {
+                cameraReturnComplete = true;
+            });
+            yield return new WaitUntil(() => cameraReturnComplete);
+            Debug.Log($"[ObstacleTrigger] Returned to player camera");
+        }
+        
+        // Return to game mode
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ReturnToGameMode();
         }
         
         // Disable trigger
@@ -543,6 +563,12 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         {
             waterPlane.SetActive(true);
             Debug.Log("[ObstacleTrigger] Water plane activated");
+        }
+        
+        // Start water rise animation for Pharaoh obstacles (parallel with sinking)
+        if (obstacleType == ObstacleType.MainObstacle && gameObject.CompareTag("Pharaoh"))
+        {
+            StartCoroutine(WaterRiseCoroutine());
         }
         
         // Store initial transform values
@@ -749,6 +775,62 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             yield return null;
         }
     }
+    
+    /// <summary>
+    /// Raises water from ground when Pharaoh obstacle is cleared.
+    /// </summary>
+    private IEnumerator WaterRiseCoroutine()
+    {
+        if (waterRiseObject == null)
+        {
+            Debug.LogWarning("[ObstacleTrigger] Water rise object is not assigned for Pharaoh obstacle");
+            yield break;
+        }
+        
+        Debug.Log($"[ObstacleTrigger] Starting water rise animation for {gameObject.name}");
+        
+        // Wait for delay before starting
+        if (waterRiseDelay > 0f)
+        {
+            yield return new WaitForSeconds(waterRiseDelay);
+        }
+        
+        // Activate water object if not already active
+        waterRiseObject.SetActive(true);
+        
+        // Play water rise sound
+        if (waterRiseSound != null)
+        {
+            AudioSource.PlayClipAtPoint(waterRiseSound, waterRiseObject.transform.position, waterRiseSoundVolume);
+            Debug.Log("[ObstacleTrigger] Playing water rise sound");
+        }
+        
+        // Store initial position
+        Vector3 startPos = waterRiseObject.transform.position;
+        Vector3 targetPos = startPos + Vector3.up * waterRiseHeight;
+        
+        Debug.Log($"[ObstacleTrigger] Water rising from {startPos.y} to {targetPos.y}");
+        
+        float elapsed = 0f;
+        
+        while (elapsed < waterRiseDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / waterRiseDuration;
+            
+            // Smooth ease-out curve for natural water rise
+            t = EaseOutQuad(t);
+            
+            // Interpolate position
+            waterRiseObject.transform.position = Vector3.Lerp(startPos, targetPos, t);
+            
+            yield return null;
+        }
+        
+        // Ensure final position is exact
+        waterRiseObject.transform.position = targetPos;
+        Debug.Log($"[ObstacleTrigger] Water rise complete. Final height: {targetPos.y}");
+    }
     #endregion
     
     #region Environment
@@ -858,7 +940,7 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         }
         
         Vector3 startRotation = doorObject.transform.localEulerAngles;
-        Vector3 targetRotation = new Vector3(startRotation.x, doorOpenRotationY, startRotation.z);
+        Vector3 targetRotation = new Vector3(startRotation.x, startRotation.y + doorOpenRotationY, startRotation.z);
         
         Debug.Log($"[ObstacleTrigger] Opening door from Y={startRotation.y}° to Y={doorOpenRotationY}° over {doorOpenDuration}s");
         
