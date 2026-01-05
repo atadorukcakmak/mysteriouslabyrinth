@@ -88,6 +88,9 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     [Tooltip("TreeLeaf objects to activate when Gate obstacle is cleared. Leave empty to search by tag.")]
     [SerializeField] private GameObject[] treeLeafObjects;
     
+    [Tooltip("Delay between each TreeLeaf activation (in seconds)")]
+    [SerializeField] private float treeLeafActivationDelay = 0.2f;
+    
     [Header("Door (Gate Only)")]
     [Tooltip("Door GameObject to open when Gate obstacle is cleared")]
     [SerializeField] private GameObject doorObject;
@@ -116,6 +119,7 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     private Collider triggerCollider;
     private bool playerInRange;
     private bool doorAnimationComplete;
+    private bool treeLeavesActivationComplete;
     #endregion
     
     #region Initialization
@@ -374,50 +378,53 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         
         Debug.Log($"[ObstacleTrigger] Checking obstacle type: {obstacleType}, IsGate: {obstacleType == ObstacleType.Gate}");
         
-        // If this is a Gate obstacle, activate TreeLeaf objects and open door (no removal animation)
-        // Camera transition happens AFTER success dialogue is complete for Gate
+        // If this is a Gate obstacle, show success text first, then open door and activate TreeLeaves
         if (obstacleType == ObstacleType.Gate)
         {
-            Debug.Log("[ObstacleTrigger] Gate obstacle detected, calling ActivateTreeLeaves()...");
-            ActivateTreeLeaves();
+            Debug.Log("[ObstacleTrigger] Gate obstacle detected");
             
             // Get success dialogue for Gate
             string[] successMessages = customQuestion != null ? customQuestion.GetSuccessDialogueMessages() : null;
             
-            // Start door opening and show success text at the same time (parallel)
-            bool dialogueComplete = false;
-            
-            // Show success dialogue (with Continue button)
+            // Step 1: Show success dialogue FIRST and wait for it to complete
             if (successMessages != null && successMessages.Length > 0 && UIManager.Instance != null)
             {
-                Debug.Log("[ObstacleTrigger] Showing success text while door opens...");
+                Debug.Log("[ObstacleTrigger] Showing success text...");
+                bool dialogueComplete = false;
                 UIManager.Instance.ShowDialogueSequence(successMessages, () =>
                 {
                     dialogueComplete = true;
                     Debug.Log("[ObstacleTrigger] Success dialogue completed (Continue pressed)");
                 });
-            }
-            else
-            {
-                dialogueComplete = true; // No dialogue to show
+                
+                // Wait for player to press Continue
+                yield return new WaitUntil(() => dialogueComplete);
             }
             
-            // Start door opening animation (parallel - don't wait for it)
+            Debug.Log("[ObstacleTrigger] Success text completed, now starting door animation and activating TreeLeaves...");
+            
+            // Step 2: AFTER success text is complete, start activating TreeLeaves one by one (parallel with door)
+            Debug.Log("[ObstacleTrigger] Starting TreeLeaves activation...");
+            StartCoroutine(ActivateTreeLeavesCoroutine());
+            
+            // Step 3: Start door opening animation AFTER success text is complete (parallel with TreeLeaves)
             if (doorObject != null)
             {
-                Debug.Log("[ObstacleTrigger] Opening door (parallel with success text)...");
+                Debug.Log("[ObstacleTrigger] Opening door...");
                 StartCoroutine(OpenDoorCoroutine());
             }
             else
             {
                 Debug.LogWarning("[ObstacleTrigger] Door object is not assigned!");
+                doorAnimationComplete = true; // No door to animate
             }
             
-            // Wait for player to press Continue on success dialogue (door opens in parallel)
-            yield return new WaitUntil(() => dialogueComplete);
-            Debug.Log("[ObstacleTrigger] Player completed success dialogue");
+            // Step 4: Wait for BOTH door animation AND TreeLeaves activation to complete
+            Debug.Log("[ObstacleTrigger] Waiting for door animation and TreeLeaves activation to complete...");
+            yield return new WaitUntil(() => doorAnimationComplete && treeLeavesActivationComplete);
+            Debug.Log("[ObstacleTrigger] Both door animation and TreeLeaves activation completed");
             
-            // Now return camera to player
+            // Step 5: AFTER both animations are complete, return camera to player
             if (triggerCamera != null && CameraManager.Instance != null)
             {
                 Debug.Log("[ObstacleTrigger] Returning to player camera...");
@@ -850,12 +857,13 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
     }
     
     /// <summary>
-    /// Activates all TreeLeaf objects when Gate obstacle is cleared.
+    /// Activates all TreeLeaf objects one by one with a delay when Gate obstacle is cleared.
     /// First tries to use serialized treeLeafObjects array, then falls back to tag search.
     /// </summary>
-    private void ActivateTreeLeaves()
+    private IEnumerator ActivateTreeLeavesCoroutine()
     {
-        Debug.Log("[ObstacleTrigger] ActivateTreeLeaves() called - searching for TreeLeaf objects...");
+        treeLeavesActivationComplete = false;
+        Debug.Log("[ObstacleTrigger] ActivateTreeLeavesCoroutine() called - searching for TreeLeaf objects...");
         
         System.Collections.Generic.List<GameObject> treeLeaves = new System.Collections.Generic.List<GameObject>();
         
@@ -902,13 +910,21 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
         
         if (treeLeaves.Count > 0)
         {
-            Debug.Log($"[ObstacleTrigger] Activating {treeLeaves.Count} TreeLeaf object(s)");
-            foreach (GameObject leaf in treeLeaves)
+            Debug.Log($"[ObstacleTrigger] Activating {treeLeaves.Count} TreeLeaf object(s) one by one with {treeLeafActivationDelay}s delay");
+            
+            for (int i = 0; i < treeLeaves.Count; i++)
             {
+                GameObject leaf = treeLeaves[i];
                 if (leaf != null)
                 {
-                    Debug.Log($"[ObstacleTrigger] Activating TreeLeaf: {leaf.name}");
+                    Debug.Log($"[ObstacleTrigger] Activating TreeLeaf {i + 1}/{treeLeaves.Count}: {leaf.name}");
                     leaf.SetActive(true);
+                    
+                    // Wait before activating next leaf (except for the last one)
+                    if (i < treeLeaves.Count - 1)
+                    {
+                        yield return new WaitForSeconds(treeLeafActivationDelay);
+                    }
                 }
                 else
                 {
@@ -923,6 +939,9 @@ public class ObstacleTrigger : MonoBehaviour, IInteractable
             Debug.LogWarning("  1. Assign TreeLeaf objects to 'Tree Leaf Objects' array in Inspector, OR");
             Debug.LogWarning("  2. Tag your TreeLeaf objects with 'TreeLeaf' tag in Unity");
         }
+        
+        treeLeavesActivationComplete = true;
+        Debug.Log("[ObstacleTrigger] TreeLeaves activation complete");
     }
     
     /// <summary>
